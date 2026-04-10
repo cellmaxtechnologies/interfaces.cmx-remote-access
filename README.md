@@ -1,8 +1,10 @@
-# cmx-server-interface
+# cmx-remote-access
 
-Umbrella for **network-facing services** and **shared contracts** used across **development** and **production** stacks. It is the interface layer behind **one company-wide view** of computers, **hardware**, **applications**, and **databases**.
+Umbrella for **network-facing services** and **shared contracts** used across **development** and **production** stacks. The name avoids repeating “interface”: this repo already lives under **`interfaces/`**, and on GitHub it is **`interfaces.cmx-remote-access`**.
 
-## Two systems, same interfaces
+It is the **remote access** layer behind **one company-wide view** of computers, **hardware**, **applications**, and **databases**.
+
+## Two systems, same contracts
 
 | Repository | Path | Role |
 |------------|------|------|
@@ -13,27 +15,30 @@ Both:
 
 - Run largely via **Docker** (compose, overlays, agents).
 - Communicate with **remote computers** and whatever runs there (**apps** and/or **hardware gateways**).
-- Should consume the **same command/auth/health patterns** and **similar server shapes** defined here—not duplicate ad hoc APIs per environment.
+- Should consume the **same command/auth/health patterns** and **similar service shapes** defined here—not duplicate ad hoc APIs per environment.
 
 ## Three pillars (per computer)
 
 | Pillar | When to use |
 |--------|-------------|
 | **Hardware** | Direct device access (serial, VISA, station I/O); use **proxies** in CI/dev. |
-| **Applications** | **Interface the app** when installs are heavy, tools are third-party, or the app already owns the hardware (COM, local HTTP, CLI). |
+| **Applications** | **Bridge the app** when installs are heavy, tools are third-party, or the app already owns the hardware (COM, local HTTP, CLI). |
 | **Databases** | DB and related services (including Dockerized) that should appear next to hardware/apps for that host. |
 
 ## One dashboard (company-wide)
 
 Monitoring is **not** “production-only.” The aim is **one tree-style dashboard** over **all relevant machines**: production floors, labs, and development—each node listing **applications**, **hardware**, and **databases** as appropriate.
 
-The **dashboard application** lives in its own repo: **`cmx-dashboard`**, at **`cellmaxtechnologies/cmx-dashboard`** (root of this workspace—not under `interfaces/`). Interface packages stay under **`interfaces/cmx-server-interface`**.
+The **dashboard application** is **`cmx-dashboard`** at **`cellmaxtechnologies/cmx-dashboard`**. Shared packages and contracts live here under **`interfaces/cmx-remote-access`**.
 
 ## Layout
 
-- `packages/` — services and libraries (e.g. PDM API, hardware gateway package, future shared auth/envelope libraries).
+- `packages/` — services and libraries (e.g. PDM API; future shared auth/envelope libraries, hardware gateways).
 
-## Path
+## Paths
 
-`cellmaxtechnologies/interfaces/cmx-server-interface`  
-(Dotted: `cellmaxtechnologies.interfaces.cmx-server-interface`.)
+| | |
+|--|--|
+| **Workspace folder** | `cellmaxtechnologies/interfaces/cmx-remote-access` |
+| **GitHub** | `cellmaxtechnologies/interfaces.cmx-remote-access` |
+| **Dotted label** | `cellmaxtechnologies.interfaces.cmx-remote-access` |
