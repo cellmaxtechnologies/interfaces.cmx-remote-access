@@ -1,0 +1,27 @@
+# Ignore Python bytecode files
+__pycache__/
+
+# Ignore poetry virtual environment
+/.venv/
+
+# Ignore build and distribution directories
+/dist/
+/build/
+
+# Ignore local development settings (e.g., .env files)
+.env*
+
+# Ignore editor and IDE settings
+.vscode/
+.idea/
+*.pyc
+
+# Ignore temporary files
+*.tmp
+
+# Ignore logs
+*.log
+
+# Ignore environment-specific configuration files
+.env
+.env.local

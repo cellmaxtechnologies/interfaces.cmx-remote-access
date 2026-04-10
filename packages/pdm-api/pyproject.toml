@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "pdm_api"
+version = "1.2.5"
+description = "Add your description here"
+authors = ["Viktor Jonsson <viktor.jonsson@cellmax.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+ipykernel = "^6.29.5"
+pythonnet = "^3.0.2"
+pywin32 = "^311"
+pytest-line-profiler = "^0.2.1"
+fastapi = "^0.95.2"
+uvicorn = "^0.22.0"
+pydantic = "^1.10.13"
+python-multipart = "^0.0.9"
+requests = "^2.32.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+bs4 = "^0.0.2"
+requests = "^2.32.3"
+pandas = "^2.2.3"
+line-profiler = "^4.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

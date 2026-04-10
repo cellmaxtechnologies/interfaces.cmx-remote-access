@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Builds / packaging
+build/
+dist/
+*.exe
+*.pkg
+
+# Secrets
+.env
+.env.*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Generated dumps (optional local exports)
+project_content.txt
+*.log
