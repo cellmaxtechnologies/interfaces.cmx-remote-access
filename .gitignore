@@ -11,6 +11,7 @@ venv/
 build/
 dist/
 *.exe
+!packages/cmx-remote-access/tools/nssm.exe
 *.pkg
 
 # Secrets

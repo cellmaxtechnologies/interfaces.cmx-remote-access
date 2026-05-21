@@ -28,8 +28,8 @@ service_only = require_roles(settings, frozenset({"service", "admin"}))
 ## Installation UX (shared with all CMx APIs)
 
 - `**scripts/CmxInstallCore.ps1**` — shared source-install seam. Owns monorepo discovery, Python/Git/Poetry checks, common `.env` overwrite flow, and auth prompts.
-- `**scripts/CmxBuildCore.ps1**` — shared build seam. Owns Poetry bootstrap, PyInstaller bootstrap, wheel-bundle assembly, robust zip creation, and optional bundled `nssm.exe` pickup from `NSSM_EXE`.
-- `**scripts/CmxWindowsServiceCore.ps1**` — shared NSSM/service seam. Owns service install/update/remove, firewall helper, health wait, and bundled-`nssm.exe` lookup.
+- `**scripts/CmxBuildCore.ps1**` — shared build seam. Owns Poetry bootstrap, PyInstaller bootstrap, wheel-bundle assembly, robust zip creation, and bundling the vendored `tools/nssm.exe`.
+- `**scripts/CmxWindowsServiceCore.ps1**` — shared NSSM/service seam. Owns service install/update/remove, firewall helper, health wait, and bundle/repo `nssm.exe` lookup.
 - Child CRA repos should keep `install.ps1` and `build.ps1` thin: pass only product-specific prompts, spec names, copied files, and sibling dependency repos.
 
 If shared install/build behavior changes, change CRA once, then update child repos. Child repos should not copy generic CRA logic.
