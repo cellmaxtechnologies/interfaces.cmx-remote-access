@@ -7,7 +7,7 @@
     so CRA owns build flow and child repos only provide specifics.
 #>
 
-$script:CmxBuildCoreVersion = '1.2.0'
+$script:CmxBuildCoreVersion = '1.2.1'
 
 function Write-CmxBuildBanner {
     param([string]$Title)
@@ -104,6 +104,7 @@ function Copy-CmxBuildFiles {
 function Get-CmxOptionalNssmSource {
     $candidates = @(
         $env:NSSM_EXE,
+        "C:\ProgramData\chocolatey\bin\nssm.exe",
         "C:\nssm\win64\nssm.exe",
         "C:\nssm\nssm.exe",
         "C:\Program Files\nssm\nssm.exe"

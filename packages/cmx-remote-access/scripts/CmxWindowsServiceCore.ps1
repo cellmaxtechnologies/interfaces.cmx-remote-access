@@ -3,7 +3,7 @@
     Shared Windows service helpers for CRA packages.
 #>
 
-$script:CmxWindowsServiceCoreVersion = '1.0.0'
+$script:CmxWindowsServiceCoreVersion = '1.0.1'
 
 function Write-CmxServiceStep {
     param([Parameter(Mandatory)][string]$Message)
@@ -24,6 +24,7 @@ function Find-CmxNssm {
     $cmd = Get-Command nssm -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
     $candidates = @(
+        "C:\ProgramData\chocolatey\bin\nssm.exe",
         "C:\nssm\win64\nssm.exe",
         "C:\nssm\nssm.exe",
         "C:\Program Files\nssm\nssm.exe"
