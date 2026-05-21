@@ -154,6 +154,103 @@ function Write-CmxManualDependencyWarning {
     }
 }
 
+function Read-CmxEnvFile {
+    param([Parameter(Mandatory)][string]$Path)
+    $values = [ordered]@{}
+    if (-not (Test-Path $Path)) {
+        return $values
+    }
+    Get-Content -Path $Path | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith("#") -or $line -notmatch "=") {
+            return
+        }
+        $parts = $line.Split("=", 2)
+        $key = $parts[0].Trim()
+        $value = if ($parts.Length -gt 1) { $parts[1].Trim() } else { "" }
+        if ($value.StartsWith('"') -and $value.EndsWith('"')) {
+            $value = $value.Trim('"')
+        }
+        if ($key) {
+            $values[$key] = $value
+        }
+    }
+    return $values
+}
+
+function Prompt-CmxValue {
+    param(
+        [Parameter(Mandatory)][string]$Label,
+        [string]$CurrentValue = "",
+        [switch]$Required,
+        [switch]$Secret
+    )
+    while ($true) {
+        $prompt = if ($CurrentValue) { "$Label [$CurrentValue]" } else { $Label }
+        if ($Secret) {
+            $secure = Read-Host -Prompt $prompt -AsSecureString
+            $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+            try {
+                $value = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+            } finally {
+                if ($bstr -ne [IntPtr]::Zero) {
+                    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+                }
+            }
+        } else {
+            $value = Read-Host -Prompt $prompt
+        }
+
+        if (-not $value -and $CurrentValue) {
+            $value = $CurrentValue
+        }
+
+        if (-not $Required -or $value) {
+            return $value
+        }
+
+        Write-Host "Value required."
+    }
+}
+
+function Get-CmxServerIPv4 {
+    $candidates = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.IPAddress -and
+            $_.IPAddress -ne "127.0.0.1" -and
+            $_.PrefixOrigin -ne "WellKnown" -and
+            $_.InterfaceAlias -notmatch "Loopback"
+        } |
+        Sort-Object SkipAsSource, InterfaceMetric
+
+    $selected = $candidates | Select-Object -First 1
+    if ($selected -and $selected.IPAddress) {
+        return $selected.IPAddress
+    }
+
+    try {
+        $fallback = [System.Net.Dns]::GetHostAddresses([System.Net.Dns]::GetHostName()) |
+            Where-Object { $_.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork -and $_.IPAddressToString -ne "127.0.0.1" } |
+            Select-Object -First 1
+        if ($fallback) {
+            return $fallback.IPAddressToString
+        }
+    } catch {
+    }
+
+    throw "Could not determine a non-loopback IPv4 address for this server."
+}
+
+function Get-CmxFreeTcpPort {
+    $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+    try {
+        $listener.Start()
+        return ([System.Net.IPEndPoint]$listener.LocalEndpoint).Port
+    } finally {
+        $listener.Stop()
+    }
+}
+
 function Invoke-CmxSourceInstallBootstrap {
     param(
         [Parameter(Mandatory)][string]$ProjectDirectory,

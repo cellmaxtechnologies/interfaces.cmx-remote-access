@@ -7,7 +7,7 @@
     so CRA owns build flow and child repos only provide specifics.
 #>
 
-$script:CmxBuildCoreVersion = '1.1.0'
+$script:CmxBuildCoreVersion = '1.2.0'
 
 function Write-CmxBuildBanner {
     param([string]$Title)
@@ -78,10 +78,18 @@ function Copy-CmxBuildFiles {
     )
     foreach ($item in $Files) {
         if ($item -is [string]) {
-            $source = Join-Path $ProjectDirectory $item
+            if ([System.IO.Path]::IsPathRooted($item)) {
+                $source = $item
+            } else {
+                $source = Join-Path $ProjectDirectory $item
+            }
             $target = Join-Path $DestinationDirectory (Split-Path $item -Leaf)
         } else {
-            $source = Join-Path $ProjectDirectory $item.Source
+            if ([System.IO.Path]::IsPathRooted($item.Source)) {
+                $source = $item.Source
+            } else {
+                $source = Join-Path $ProjectDirectory $item.Source
+            }
             $target = Join-Path $DestinationDirectory $item.Destination
         }
 
@@ -91,6 +99,21 @@ function Copy-CmxBuildFiles {
         }
         Copy-Item $source $target -Force
     }
+}
+
+function Get-CmxOptionalNssmSource {
+    $candidates = @(
+        $env:NSSM_EXE,
+        "C:\nssm\win64\nssm.exe",
+        "C:\nssm\nssm.exe",
+        "C:\Program Files\nssm\nssm.exe"
+    ) | Where-Object { $_ }
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) {
+            return (Resolve-Path $candidate).Path
+        }
+    }
+    return $null
 }
 
 function Compress-CmxArchiveRobust {
@@ -181,11 +204,15 @@ function New-CmxWheelBundle {
         Push-Location $repoPath
         try {
             Write-CmxBuildBanner "poetry build $($repo.Name)"
+            $repoDist = Join-Path $repoPath 'dist'
+            if (Test-Path $repoDist) {
+                Remove-Item -LiteralPath $repoDist -Recurse -Force
+            }
             poetry build
             if ($LASTEXITCODE -ne 0) {
                 throw "poetry build failed for $($repo.Name)"
             }
-            Get-ChildItem -Path (Join-Path $repoPath 'dist') -Filter '*.whl' -File | ForEach-Object {
+            Get-ChildItem -Path $repoDist -Filter '*.whl' -File | ForEach-Object {
                 Copy-Item $_.FullName -Destination $wheelsDirectory -Force
             }
         } finally {
