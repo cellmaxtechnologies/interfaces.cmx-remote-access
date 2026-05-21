@@ -33,7 +33,9 @@ The **dashboard application** is **`cmx-dashboard`** at **`cellmaxtechnologies/c
 
 ## Layout
 
-- `packages/` — services and libraries (e.g. PDM API; future shared auth/envelope libraries, hardware gateways).
+- `packages/cmx-remote-access/` — **Python library** (`cmx_remote_access`): shared **RemoteCommand/RemoteResult** contracts, **FastAPI bearer auth** (`SERVICE_API_TOKEN`, `ADMIN_API_TOKEN`, `AUTH_STRICT`), plus an **optional dev HTTP reverse proxy** (`poetry run cmx-remote-proxy`; see `packages/cmx-remote-access/README.md`).
+- `packages/cmx-remote-access/scripts/CmxInstallCore.ps1` — **shared Windows installer core**; each product ships an `install.ps1` that dot-sources it (see `packages/cmx-remote-access/docs/INSTALLATION.md`).
+- `packages/pdm-api/` — PDM HTTP integration (existing).
 
 ## Paths
 
