@@ -351,7 +351,7 @@ function Assert-CmxEnvFileHasKeys {
     }
 
     if (-not (Test-Path $EnvPath)) {
-        throw "Missing .env for $ServiceLabel: $EnvPath. Run the installer wizard or copy .env.example to .env and fill the required values."
+        throw "Missing .env for ${ServiceLabel}: $EnvPath. Run the installer wizard or copy .env.example to .env and fill the required values."
     }
 
     $values = Read-CmxEnvFile -Path $EnvPath
@@ -364,7 +364,7 @@ function Assert-CmxEnvFileHasKeys {
 
     if ($missing.Count -gt 0) {
         $joined = $missing -join ', '
-        throw "Missing required .env values for $ServiceLabel: $joined. Update $EnvPath or rerun the installer."
+        throw "Missing required .env values for ${ServiceLabel}: $joined. Update $EnvPath or rerun the installer."
     }
 }
 
