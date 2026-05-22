@@ -11,16 +11,18 @@ def test_ensure_client_env_file_writes_missing_keys_only(tmp_path: Path) -> None
 
     written = ensure_client_env_file(
         defaults={
-            "PDM_API_URL": "http://127.0.0.1:37710",
+            "API_HOST": "127.0.0.1",
+            "API_PORT": "37710",
             "SERVICE_API_TOKEN": "",
-            "PDM_FORCE_HTTP": "1",
+            "FORCE_HTTP": "1",
         },
         env_path=env_path,
-        service_label="pdm-api remote client",
+        service_label="remote client",
     )
 
     assert written == env_path
     text = env_path.read_text(encoding="utf-8")
     assert "SERVICE_API_TOKEN=abc123" in text
-    assert "PDM_API_URL=http://127.0.0.1:37710" in text
-    assert "PDM_FORCE_HTTP=1" in text
+    assert "API_HOST=127.0.0.1" in text
+    assert "API_PORT=37710" in text
+    assert "FORCE_HTTP=1" in text

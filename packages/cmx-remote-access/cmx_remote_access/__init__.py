@@ -9,6 +9,7 @@ from cmx_remote_access.auth import (
 )
 from cmx_remote_access.config import RemoteAccessSettings, load_remote_access_settings
 from cmx_remote_access.client_env import ensure_client_env_file
+from cmx_remote_access.client_init import init_remote_access
 from cmx_remote_access.contracts import (
     REMOTE_ACCESS_PROXY_VERSION_HEADER,
     RemoteCommand,
@@ -25,6 +26,7 @@ __all__ = [
     "authenticate_bearer",
     "authenticate_request",
     "ensure_client_env_file",
+    "init_remote_access",
     "health_payload",
     "load_remote_access_settings",
     "require_roles",
