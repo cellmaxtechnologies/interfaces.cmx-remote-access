@@ -7,7 +7,7 @@
     so CRA owns build flow and child repos only provide specifics.
 #>
 
-$script:CmxBuildCoreVersion = '1.3.0'
+$script:CmxBuildCoreVersion = '1.4.0'
 
 function Write-CmxBuildBanner {
     param([string]$Title)
@@ -134,9 +134,18 @@ function Compress-CmxArchiveRobust {
     if (Test-Path $DestinationPath) {
         Remove-Item -LiteralPath $DestinationPath -Force
     }
+    $archiveInputs = @()
+    if (Test-Path $SourcePath -PathType Container) {
+        $archiveInputs = @(Get-ChildItem -LiteralPath $SourcePath -Force | ForEach-Object { $_.FullName })
+        if ($archiveInputs.Count -eq 0) {
+            throw "Cannot create archive from empty directory: $SourcePath"
+        }
+    } else {
+        $archiveInputs = @($SourcePath)
+    }
     for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         try {
-            Compress-Archive -Path $SourcePath -DestinationPath $DestinationPath
+            Compress-Archive -Path $archiveInputs -DestinationPath $DestinationPath
             return
         } catch {
             if ($attempt -eq $MaxAttempts) {
