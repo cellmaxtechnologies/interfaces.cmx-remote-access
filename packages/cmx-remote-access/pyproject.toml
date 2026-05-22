@@ -21,6 +21,7 @@ pytest = "^8.3.0"
 
 [tool.poetry.scripts]
 cmx-remote-proxy = "cmx_remote_access.proxy.main:run"
+init-remote-access = "cmx_remote_access.client_init:main"
 
 [build-system]
 requires = ["poetry-core"]
