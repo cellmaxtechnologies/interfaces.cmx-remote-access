@@ -11,7 +11,7 @@
     This file is part of the cmx-remote-access package so every API repo can offer the same “feel”.
 #>
 
-$script:CmxInstallCoreVersion = '1.1.0'
+$script:CmxInstallCoreVersion = '1.2.0'
 $script:CmxPythonArgs = @()
 
 function Write-CmxBanner {
@@ -340,22 +340,54 @@ function Export-CmxDotEnvFile {
     Write-Host "[OK] Wrote $Path" -ForegroundColor Green
 }
 
+function Assert-CmxEnvFileHasKeys {
+    param(
+        [Parameter(Mandatory)][string]$EnvPath,
+        [string[]]$RequiredKeys = @(),
+        [string]$ServiceLabel = 'service'
+    )
+    if (-not $RequiredKeys -or $RequiredKeys.Count -eq 0) {
+        return
+    }
+
+    if (-not (Test-Path $EnvPath)) {
+        throw "Missing .env for $ServiceLabel: $EnvPath. Run the installer wizard or copy .env.example to .env and fill the required values."
+    }
+
+    $values = Read-CmxEnvFile -Path $EnvPath
+    $missing = @()
+    foreach ($key in $RequiredKeys) {
+        if (-not $values.Contains($key) -or [string]::IsNullOrWhiteSpace([string]$values[$key])) {
+            $missing += $key
+        }
+    }
+
+    if ($missing.Count -gt 0) {
+        $joined = $missing -join ', '
+        throw "Missing required .env values for $ServiceLabel: $joined. Update $EnvPath or rerun the installer."
+    }
+}
+
 function Invoke-CmxEnvWizard {
     param(
         [Parameter(Mandatory)][string]$EnvPath,
         [switch]$SkipPrompts,
         [switch]$SkipEnvWizard,
         [Parameter(Mandatory)][scriptblock]$BuildVariables,
+        [string[]]$RequiredKeys = @(),
+        [string]$ServiceLabel = 'service',
         [string]$SkipPromptWarning = 'Skipping interactive .env creation (-SkipPrompts). Copy .env.example to .env and edit as needed.',
         [string]$SkipWizardMessage = 'Skipping .env wizard (-SkipEnvWizard).'
     )
     if ($SkipEnvWizard) {
         Write-Host $SkipWizardMessage -ForegroundColor DarkGray
+        Assert-CmxEnvFileHasKeys -EnvPath $EnvPath -RequiredKeys $RequiredKeys -ServiceLabel $ServiceLabel
         return
     }
 
     if ($SkipPrompts) {
         Write-Warning $SkipPromptWarning
+        Assert-CmxEnvFileHasKeys -EnvPath $EnvPath -RequiredKeys $RequiredKeys -ServiceLabel $ServiceLabel
         return
     }
 
@@ -369,9 +401,11 @@ function Invoke-CmxEnvWizard {
     }
 
     if (-not $doWrite) {
+        Assert-CmxEnvFileHasKeys -EnvPath $EnvPath -RequiredKeys $RequiredKeys -ServiceLabel $ServiceLabel
         return
     }
 
     $vars = & $BuildVariables
     Export-CmxDotEnvFile -Path $EnvPath -Variables $vars
+    Assert-CmxEnvFileHasKeys -EnvPath $EnvPath -RequiredKeys $RequiredKeys -ServiceLabel $ServiceLabel
 }

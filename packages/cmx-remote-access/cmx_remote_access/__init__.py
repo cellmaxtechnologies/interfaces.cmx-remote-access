@@ -8,6 +8,7 @@ from cmx_remote_access.auth import (
     token_role_map_from_env,
 )
 from cmx_remote_access.config import RemoteAccessSettings, load_remote_access_settings
+from cmx_remote_access.client_env import ensure_client_env_file
 from cmx_remote_access.contracts import (
     REMOTE_ACCESS_PROXY_VERSION_HEADER,
     RemoteCommand,
@@ -23,6 +24,7 @@ __all__ = [
     "REMOTE_ACCESS_PROXY_VERSION_HEADER",
     "authenticate_bearer",
     "authenticate_request",
+    "ensure_client_env_file",
     "health_payload",
     "load_remote_access_settings",
     "require_roles",
