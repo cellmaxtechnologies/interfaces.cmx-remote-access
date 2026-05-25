@@ -97,6 +97,18 @@ function Set-CmxNssmValue {
     }
 }
 
+function Reset-CmxNssmValue {
+    param(
+        [Parameter(Mandatory)][string]$NssmExe,
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][string]$Key
+    )
+    & $NssmExe reset $ServiceName $Key | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed resetting NSSM value '$Key'."
+    }
+}
+
 function Install-OrUpdate-CmxNssmService {
     param(
         [Parameter(Mandatory)][string]$NssmExe,
@@ -136,7 +148,11 @@ function Install-OrUpdate-CmxNssmService {
         } catch {
         }
         & $NssmExe set $ServiceName Application $ApplicationPath | Out-Null
-        & $NssmExe set $ServiceName AppParameters $ApplicationArgs | Out-Null
+        if ([string]::IsNullOrWhiteSpace($ApplicationArgs)) {
+            Reset-CmxNssmValue -NssmExe $NssmExe -ServiceName $ServiceName -Key "AppParameters"
+        } else {
+            & $NssmExe set $ServiceName AppParameters $ApplicationArgs | Out-Null
+        }
     }
 
     Set-CmxNssmValue -NssmExe $NssmExe -ServiceName $ServiceName -Key "AppDirectory" -Value $AppDirectory
