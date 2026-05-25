@@ -130,12 +130,55 @@ function Test-CmxPoetry {
     return $false
 }
 
+function Get-CmxPoetryGitDependencyNames {
+    param([Parameter(Mandatory)][string]$ProjectDirectory)
+    $pyprojectPath = Join-Path $ProjectDirectory 'pyproject.toml'
+    if (-not (Test-Path $pyprojectPath)) {
+        return @()
+    }
+
+    $names = New-Object System.Collections.Generic.List[string]
+    $inDependencies = $false
+    foreach ($rawLine in Get-Content $pyprojectPath) {
+        $line = $rawLine.Trim()
+        if ($line -match '^\[tool\.poetry\.dependencies\]$') {
+            $inDependencies = $true
+            continue
+        }
+        if ($inDependencies -and $line -match '^\[') {
+            break
+        }
+        if (-not $inDependencies -or -not $line -or $line.StartsWith('#')) {
+            continue
+        }
+        if ($line -match '^([A-Za-z0-9._-]+)\s*=\s*\{[^}]*\bgit\s*=') {
+            $names.Add($matches[1])
+        }
+    }
+    return @($names | Select-Object -Unique)
+}
+
+function Invoke-CmxPoetryRefreshGitDependencies {
+    param([Parameter(Mandatory)][string]$ProjectDirectory)
+    $gitDependencies = Get-CmxPoetryGitDependencyNames -ProjectDirectory $ProjectDirectory
+    if (-not $gitDependencies -or $gitDependencies.Count -eq 0) {
+        return
+    }
+
+    Write-CmxBanner "poetry update (git deps)"
+    poetry update @gitDependencies
+    if ($LASTEXITCODE -ne 0) {
+        throw "poetry update failed for git dependencies: $($gitDependencies -join ', ')"
+    }
+}
+
 function Invoke-CmxPoetryInstall {
     param(
         [Parameter(Mandatory)][string]$ProjectDirectory
     )
     Push-Location $ProjectDirectory
     try {
+        Invoke-CmxPoetryRefreshGitDependencies -ProjectDirectory $ProjectDirectory
         Write-CmxBanner "poetry install"
         poetry install
         if ($LASTEXITCODE -ne 0) {
