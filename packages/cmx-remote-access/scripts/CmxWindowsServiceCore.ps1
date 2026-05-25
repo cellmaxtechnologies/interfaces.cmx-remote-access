@@ -117,8 +117,16 @@ function Install-OrUpdate-CmxNssmService {
 
     if (-not (Test-CmxServiceExists -Name $ServiceName)) {
         Write-CmxServiceStep "Creating Windows service"
-        & $NssmExe install $ServiceName $ApplicationPath $ApplicationArgs | Out-Null
+        if ([string]::IsNullOrWhiteSpace($ApplicationArgs)) {
+            $installOutput = & $NssmExe install $ServiceName $ApplicationPath 2>&1
+        } else {
+            $installOutput = & $NssmExe install $ServiceName $ApplicationPath $ApplicationArgs 2>&1
+        }
         if ($LASTEXITCODE -ne 0) {
+            $details = (($installOutput | ForEach-Object { "$_" }) -join [Environment]::NewLine).Trim()
+            if ($details) {
+                throw "Failed to create service '$ServiceName'. NSSM said: $details"
+            }
             throw "Failed to create service '$ServiceName'."
         }
     } else {
