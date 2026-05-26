@@ -228,6 +228,57 @@ function Invoke-CmxReadmeDocumentationBuild {
     return $outputPath
 }
 
+function Invoke-CmxDocumentationPdfBuild {
+    param([Parameter(Mandatory)][string]$TexPath)
+    $pdflatex = Get-Command pdflatex -ErrorAction SilentlyContinue
+    if (-not $pdflatex) {
+        throw "pdflatex is required to compile API documentation PDF, but it was not found on PATH."
+    }
+
+    $texItem = Get-Item $TexPath
+    $docDir = $texItem.Directory.FullName
+    $texFile = $texItem.Name
+    $pdfPath = Join-Path $docDir ([System.IO.Path]::GetFileNameWithoutExtension($texFile) + '.pdf')
+
+    Push-Location $docDir
+    try {
+        Write-CmxBuildBanner "Compile documentation PDF"
+        & $pdflatex.Source -interaction=nonstopmode -halt-on-error $texFile | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "pdflatex failed for $TexPath"
+        }
+        & $pdflatex.Source -interaction=nonstopmode -halt-on-error $texFile | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "pdflatex failed for $TexPath"
+        }
+    } finally {
+        Pop-Location
+    }
+
+    if (-not (Test-Path $pdfPath)) {
+        throw "pdflatex did not create expected PDF: $pdfPath"
+    }
+
+    $stem = [System.IO.Path]::GetFileNameWithoutExtension($texFile)
+    foreach ($extension in @('.aux', '.log', '.out', '.toc')) {
+        $sidecar = Join-Path $docDir "$stem$extension"
+        if (Test-Path $sidecar) {
+            Remove-Item -LiteralPath $sidecar -Force
+        }
+    }
+    return $pdfPath
+}
+
+function Invoke-CmxDocumentationBuild {
+    param([Parameter(Mandatory)][string]$ProjectDirectory)
+    $texPath = Invoke-CmxReadmeDocumentationBuild -ProjectDirectory $ProjectDirectory
+    $pdfPath = Invoke-CmxDocumentationPdfBuild -TexPath $texPath
+    return @{
+        Tex = $texPath
+        Pdf = $pdfPath
+    }
+}
+
 function Invoke-CmxPyInstallerBundleBuild {
     param(
         [Parameter(Mandatory)][string]$ProjectDirectory,
@@ -348,13 +399,13 @@ function New-CmxRemoteAccessWheelBundle {
     $repositories += @{ Name = 'cmx-remote-access'; Path = $craRoot }
     $repositories += @{ Name = $PackageName; Path = $ProjectDirectory }
 
-    $documentationPath = Invoke-CmxReadmeDocumentationBuild -ProjectDirectory $ProjectDirectory
+    $documentation = Invoke-CmxDocumentationBuild -ProjectDirectory $ProjectDirectory
 
     $bundleFiles = @(
         @{ Source = (Join-Path $ProjectDirectory 'install-portable.ps1'); Destination = 'install-portable.ps1' },
         @{ Source = (Join-Path $ProjectDirectory 'install-service.ps1'); Destination = 'install-service.ps1' },
         @{ Source = (Join-Path $ProjectDirectory '.env.example'); Destination = '.env.example' },
-        @{ Source = $documentationPath; Destination = 'documentation\documentation.tex' },
+        @{ Source = $documentation.Pdf; Destination = 'documentation\documentation.pdf' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
     )
@@ -429,14 +480,14 @@ function Invoke-CmxRemoteAccessPyInstallerBundleBuild {
         throw "Missing CRA package root: $craRoot"
     }
 
-    $documentationPath = Invoke-CmxReadmeDocumentationBuild -ProjectDirectory $ProjectDirectory
+    $documentation = Invoke-CmxDocumentationBuild -ProjectDirectory $ProjectDirectory
 
     $bundleFiles = @()
     foreach ($file in $AdditionalBundleFiles) {
         $bundleFiles += $file
     }
     $bundleFiles += @(
-        @{ Source = $documentationPath; Destination = 'documentation\documentation.tex' },
+        @{ Source = $documentation.Pdf; Destination = 'documentation\documentation.pdf' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
     )

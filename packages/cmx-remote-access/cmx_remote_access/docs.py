@@ -90,7 +90,7 @@ def markdown_to_latex(markdown: str) -> str:
                 output.append(r"\end{Verbatim}")
                 output.append("")
             else:
-                output.append(r"\begin{Verbatim}[breaklines=true,fontsize=\small]")
+                output.append(r"\begin{Verbatim}[fontsize=\small]")
             in_code = not in_code
             continue
 

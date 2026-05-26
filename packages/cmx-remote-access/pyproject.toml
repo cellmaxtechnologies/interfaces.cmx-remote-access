@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmx-remote-access"
-version = "0.3.1"
+version = "0.3.2"
 description = "Shared contracts and HTTP auth for CellMax remote-access services (stations, apps, hardware bridges)."
 authors = ["CellMax Technologies"]
 readme = "README.md"
