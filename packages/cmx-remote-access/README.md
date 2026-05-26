@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.3 | 2026-05-26 | Standardize server bundles around one install-service.ps1 entrypoint. |
 | 0.3.2 | 2026-05-26 | Compile README-based PDF documentation for install bundles without shipping LaTeX source. |
 
 Shared **contracts** (`RemoteCommand`, `RemoteResult`) and **FastAPI bearer auth** aligned with `cmx-production-system` services (`SERVICE_API_TOKEN`, `ADMIN_API_TOKEN`, `AUTH_STRICT`).

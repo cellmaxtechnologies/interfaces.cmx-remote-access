@@ -402,7 +402,6 @@ function New-CmxRemoteAccessWheelBundle {
     $documentation = Invoke-CmxDocumentationBuild -ProjectDirectory $ProjectDirectory
 
     $bundleFiles = @(
-        @{ Source = (Join-Path $ProjectDirectory 'install-portable.ps1'); Destination = 'install-portable.ps1' },
         @{ Source = (Join-Path $ProjectDirectory 'install-service.ps1'); Destination = 'install-service.ps1' },
         @{ Source = (Join-Path $ProjectDirectory '.env.example'); Destination = '.env.example' },
         @{ Source = $documentation.Pdf; Destination = 'documentation\documentation.pdf' },
