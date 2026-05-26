@@ -9,12 +9,15 @@ from urllib.parse import urlparse
 
 @dataclass(frozen=True, slots=True)
 class ProxySettings:
+    """Runtime settings for the optional CRA development proxy."""
+
     upstream_base_url: str
     host: str
     port: int
 
 
 def load_proxy_settings() -> ProxySettings:
+    """Load proxy upstream and bind settings from environment."""
     try:
         from dotenv import load_dotenv
 

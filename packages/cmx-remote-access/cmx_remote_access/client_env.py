@@ -23,6 +23,7 @@ def ensure_client_env_file(
     env_path: str | Path | None = None,
     service_label: str,
 ) -> Path:
+    """Ensure a client ``.env`` file exists and contains required missing keys."""
     target = Path(env_path) if env_path is not None else (Path.cwd() / ".env")
     target.parent.mkdir(parents=True, exist_ok=True)
 
@@ -57,6 +58,7 @@ def upsert_client_env_values(
     env_path: str | Path | None = None,
     service_label: str,
 ) -> Path:
+    """Insert or update client ``.env`` values while preserving existing secrets."""
     target = Path(env_path) if env_path is not None else (Path.cwd() / ".env")
     target.parent.mkdir(parents=True, exist_ok=True)
     existing = _read_env_map(target)

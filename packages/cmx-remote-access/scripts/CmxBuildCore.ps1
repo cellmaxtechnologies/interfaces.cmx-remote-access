@@ -199,6 +199,35 @@ function Compress-CmxArchiveRobust {
     }
 }
 
+function Get-CmxProjectVersion {
+    param([Parameter(Mandatory)][string]$ProjectDirectory)
+    $pyproject = Join-Path $ProjectDirectory 'pyproject.toml'
+    foreach ($line in Get-Content $pyproject) {
+        if ($line.Trim() -match '^version\s*=\s*"([^"]+)"') {
+            return $matches[1]
+        }
+    }
+    throw "Could not read version from $pyproject"
+}
+
+function Invoke-CmxReadmeDocumentationBuild {
+    param(
+        [Parameter(Mandatory)][string]$ProjectDirectory,
+        [string]$OutputRelativePath = 'documentation\documentation.tex'
+    )
+    $craRoot = Join-Path $ProjectDirectory '..\..\interfaces\cmx-remote-access\packages\cmx-remote-access'
+    $scriptPath = Join-Path $craRoot 'cmx_remote_access\docs.py'
+    if (-not (Test-Path $scriptPath)) {
+        throw "Missing CRA documentation generator: $scriptPath"
+    }
+    $outputPath = Join-Path $ProjectDirectory $OutputRelativePath
+    & python $scriptPath --project-dir $ProjectDirectory --output $outputPath | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Documentation generation failed."
+    }
+    return $outputPath
+}
+
 function Invoke-CmxPyInstallerBundleBuild {
     param(
         [Parameter(Mandatory)][string]$ProjectDirectory,
@@ -220,12 +249,19 @@ function Invoke-CmxPyInstallerBundleBuild {
     Install-CmxPyInstallerDependencies -ProjectDirectory $ProjectDirectory
 
     Push-Location $ProjectDirectory
+    $previousBundleName = $env:CMX_PYINSTALLER_BUNDLE_NAME
     try {
+        $env:CMX_PYINSTALLER_BUNDLE_NAME = $BundleDirectoryName
         poetry run python -m PyInstaller --clean --noconfirm $SpecPath
         if ($LASTEXITCODE -ne 0) {
             throw "PyInstaller failed with exit code $LASTEXITCODE"
         }
     } finally {
+        if ($null -eq $previousBundleName) {
+            Remove-Item Env:\CMX_PYINSTALLER_BUNDLE_NAME -ErrorAction SilentlyContinue
+        } else {
+            $env:CMX_PYINSTALLER_BUNDLE_NAME = $previousBundleName
+        }
         Pop-Location
     }
 
@@ -312,10 +348,13 @@ function New-CmxRemoteAccessWheelBundle {
     $repositories += @{ Name = 'cmx-remote-access'; Path = $craRoot }
     $repositories += @{ Name = $PackageName; Path = $ProjectDirectory }
 
+    $documentationPath = Invoke-CmxReadmeDocumentationBuild -ProjectDirectory $ProjectDirectory
+
     $bundleFiles = @(
         @{ Source = (Join-Path $ProjectDirectory 'install-portable.ps1'); Destination = 'install-portable.ps1' },
         @{ Source = (Join-Path $ProjectDirectory 'install-service.ps1'); Destination = 'install-service.ps1' },
         @{ Source = (Join-Path $ProjectDirectory '.env.example'); Destination = '.env.example' },
+        @{ Source = $documentationPath; Destination = 'documentation\documentation.tex' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
     )
@@ -341,8 +380,13 @@ function Invoke-CmxRemoteAccessBundleBuild {
         [Parameter(Mandatory)][string]$PackageName,
         [array]$ExtraRepositories = @(),
         [string]$OutputDirectoryName = 'dist-bundle',
-        [string]$ZipFileName = "$PackageName-bundle.zip"
+        [string]$ZipFileName = ""
     )
+
+    $version = Get-CmxProjectVersion -ProjectDirectory $ProjectDirectory
+    if (-not $ZipFileName) {
+        $ZipFileName = "$PackageName-$version-bundle.zip"
+    }
 
     Write-Host "Building $PackageName portable bundle with CRA build core..." -ForegroundColor Cyan
     Invoke-CmxPoetryBootstrap -ProjectDirectory $ProjectDirectory
@@ -385,11 +429,14 @@ function Invoke-CmxRemoteAccessPyInstallerBundleBuild {
         throw "Missing CRA package root: $craRoot"
     }
 
+    $documentationPath = Invoke-CmxReadmeDocumentationBuild -ProjectDirectory $ProjectDirectory
+
     $bundleFiles = @()
     foreach ($file in $AdditionalBundleFiles) {
         $bundleFiles += $file
     }
     $bundleFiles += @(
+        @{ Source = $documentationPath; Destination = 'documentation\documentation.tex' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
     )

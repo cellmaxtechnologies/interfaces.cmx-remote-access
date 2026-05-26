@@ -11,11 +11,14 @@ from cmx_remote_access.config import RemoteAccessSettings, load_remote_access_se
 
 @dataclass(frozen=True, slots=True)
 class AuthContext:
+    """Authenticated principal and role resolved for an HTTP request."""
+
     role: str
     principal: str
 
 
 def token_role_map_from_env(settings: RemoteAccessSettings) -> dict[str, str]:
+    """Map configured service/admin tokens to their authorization roles."""
     mapping: dict[str, str] = {}
     if settings.service_token:
         mapping[settings.service_token] = "service"

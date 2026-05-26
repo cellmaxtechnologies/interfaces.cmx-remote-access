@@ -60,6 +60,7 @@ def _join_upstream(base: str, path: str, query: str) -> str:
 
 
 def create_app(upstream_base_url: str) -> FastAPI:
+    """Create a lightweight reverse proxy for forwarding to a station API."""
     parsed = urlparse(upstream_base_url)
     upstream_netloc = parsed.netloc
     stamp = proxy_stamp_version()
@@ -86,6 +87,7 @@ def create_app(upstream_base_url: str) -> FastAPI:
 
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"])
     async def forward(path: str, request: Request) -> Response:
+        """Forward one incoming HTTP request to the configured upstream service."""
         client: httpx.AsyncClient = request.app.state.http
         url = _join_upstream(upstream_base_url, path, request.url.query)
         body = await request.body()

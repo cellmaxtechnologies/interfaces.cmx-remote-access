@@ -25,6 +25,17 @@ Both:
 | **Applications** | **Bridge the app** when installs are heavy, tools are third-party, or the app already owns the hardware (COM, local HTTP, CLI). |
 | **Databases** | DB and related services (including Dockerized) that should appear next to hardware/apps for that host. |
 
+## Python vs HTTP
+
+CRA-backed packages should keep the direct Python API and the HTTP transport separate:
+
+- the package owns domain functions/classes with docstrings that explain the callable contract
+- `cmx-remote-access` owns bearer auth, health payloads, client remote-mode resolution, installer/build helpers, and shared service conventions
+- a package-level HTTP client mirrors the public Python operations when the caller is not on the machine that owns COM, hardware, or database access
+- READMEs describe what the package is, why it exists, how it is deployed, and where it is used; generated LaTeX documentation is built from the README
+
+This keeps docs from drifting into duplicated API reference while still making direct requests and Python function calls easy to relate.
+
 ## One dashboard (company-wide)
 
 Monitoring is **not** “production-only.” The aim is **one tree-style dashboard** over **all relevant machines**: production floors, labs, and development—each node listing **applications**, **hardware**, and **databases** as appropriate.

@@ -53,6 +53,7 @@ def init_remote_access(
     default_port: str = "",
     env_path: str | Path | None = None,
 ) -> Path:
+    """Prompt for remote client host/port/token values and write them to ``.env``."""
     target = Path(env_path) if env_path is not None else (Path.cwd() / ".env")
     current_host = _read_env_value(target, host_key) or default_host
     current_port = _read_env_value(target, port_key) or default_port

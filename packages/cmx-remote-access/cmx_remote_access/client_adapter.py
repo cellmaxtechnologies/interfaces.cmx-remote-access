@@ -14,6 +14,8 @@ def _env_flag(name: str) -> bool:
 
 @dataclass(frozen=True)
 class RemoteClientConfig:
+    """Resolved client transport settings for a CRA-backed package."""
+
     use_http: bool
     base_url: str
     service_token: str
@@ -28,6 +30,7 @@ def resolve_remote_client_config(
     defaults: Mapping[str, str],
     explicit_url_key: str | None = None,
 ) -> RemoteClientConfig:
+    """Resolve direct-Python versus HTTP mode from shared remote-access env vars."""
     base_url = ""
     if explicit_url_key:
         base_url = os.environ.get(explicit_url_key, "").strip().rstrip("/")

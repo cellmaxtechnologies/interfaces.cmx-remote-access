@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmx-remote-access"
-version = "0.3.0"
+version = "0.3.1"
 description = "Shared contracts and HTTP auth for CellMax remote-access services (stations, apps, hardware bridges)."
 authors = ["CellMax Technologies"]
 readme = "README.md"
@@ -22,6 +22,7 @@ pytest = "^8.3.0"
 [tool.poetry.scripts]
 cmx-remote-proxy = "cmx_remote_access.proxy.main:run"
 init-remote-access = "cmx_remote_access.client_init:main"
+cmx-release-package = "cmx_remote_access.release:main"
 
 [build-system]
 requires = ["poetry-core"]
