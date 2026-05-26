@@ -488,7 +488,7 @@ function Invoke-CmxPortableWheelInstall {
         throw "Python 3.10+ must be on PATH to create the venv."
     }
 
-    Write-CmxBanner "Install $ServiceLabel (portable bundle)"
+    Write-CmxBanner "Install $ServiceLabel server"
     Write-Host "Install root:  $InstallRoot" -ForegroundColor DarkGray
     Write-Host "Config (.env): $ConfigDir\.env" -ForegroundColor DarkGray
 

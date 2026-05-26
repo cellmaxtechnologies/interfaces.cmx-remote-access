@@ -377,7 +377,7 @@ function New-CmxWheelBundle {
 function New-CmxRemoteAccessWheelBundle {
     <#
     .SYNOPSIS
-        Build a standard CRA copy-only wheel bundle for a service package.
+        Build a standard CRA copy-only server bundle for a service package.
     #>
     param(
         [Parameter(Mandatory)][string]$ProjectDirectory,
@@ -423,7 +423,7 @@ function New-CmxRemoteAccessWheelBundle {
 function Invoke-CmxRemoteAccessBundleBuild {
     <#
     .SYNOPSIS
-        Bootstrap Poetry, build a standard CRA wheel bundle, and zip it.
+        Bootstrap Poetry, build a standard CRA server wheel bundle, and zip it.
     #>
     param(
         [Parameter(Mandatory)][string]$ProjectDirectory,
@@ -438,7 +438,7 @@ function Invoke-CmxRemoteAccessBundleBuild {
         $ZipFileName = "$PackageName-$version-bundle.zip"
     }
 
-    Write-Host "Building $PackageName portable bundle with CRA build core..." -ForegroundColor Cyan
+    Write-Host "Building $PackageName server bundle with CRA build core..." -ForegroundColor Cyan
     Invoke-CmxPoetryBootstrap -ProjectDirectory $ProjectDirectory
 
     New-CmxRemoteAccessWheelBundle `

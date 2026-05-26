@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.4 | 2026-05-26 | Standardize server bundle install wording around install-service.ps1. |
 | 0.3.3 | 2026-05-26 | Standardize server bundles around one install-service.ps1 entrypoint. |
 | 0.3.2 | 2026-05-26 | Compile README-based PDF documentation for install bundles without shipping LaTeX source. |
 
