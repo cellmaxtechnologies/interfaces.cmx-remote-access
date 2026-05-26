@@ -365,3 +365,49 @@ function Invoke-CmxRemoteAccessBundleBuild {
     Write-Host "Folder to inspect: $OutputDirectoryName"
     Write-Host "Zip to copy: dist\\$ZipFileName"
 }
+
+function Invoke-CmxRemoteAccessPyInstallerBundleBuild {
+    <#
+    .SYNOPSIS
+        Build a PyInstaller service bundle with the standard CRA install/service scripts included.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$ProjectDirectory,
+        [Parameter(Mandatory)][string]$SpecPath,
+        [Parameter(Mandatory)][string]$BundleDirectoryName,
+        [Parameter(Mandatory)][string]$ZipPath,
+        [array]$AdditionalBundleFiles = @(),
+        [switch]$KeepOnlyZipInBuildDirectory
+    )
+
+    $craRoot = Join-Path $ProjectDirectory '..\..\interfaces\cmx-remote-access\packages\cmx-remote-access'
+    if (-not (Test-Path $craRoot)) {
+        throw "Missing CRA package root: $craRoot"
+    }
+
+    $bundleFiles = @()
+    foreach ($file in $AdditionalBundleFiles) {
+        $bundleFiles += $file
+    }
+    $bundleFiles += @(
+        @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
+        @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
+    )
+    $nssmSource = Get-CmxOptionalNssmSource
+    if ($nssmSource) {
+        $bundleFiles += @{ Source = $nssmSource; Destination = 'tools\nssm.exe' }
+    }
+
+    Invoke-CmxPyInstallerBundleBuild `
+        -ProjectDirectory $ProjectDirectory `
+        -SpecPath $SpecPath `
+        -BundleDirectoryName $BundleDirectoryName `
+        -ZipPath $ZipPath `
+        -BundleFiles $bundleFiles
+
+    if ($KeepOnlyZipInBuildDirectory) {
+        $buildDir = Split-Path -Parent $ZipPath
+        $zipFullPath = (Get-Item $ZipPath).FullName
+        Get-ChildItem $buildDir -Force | Where-Object { $_.FullName -ne $zipFullPath } | Remove-Item -Recurse -Force
+    }
+}

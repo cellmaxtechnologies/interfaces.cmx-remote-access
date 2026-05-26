@@ -225,6 +225,129 @@ function Ensure-CmxFirewallRule {
     }
 }
 
+function Test-CmxCommandExists {
+    param([Parameter(Mandatory)][string]$Name)
+    return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Get-CmxLoggedInWindowsUsername {
+    try {
+        $whoami = (& whoami 2>$null).Trim()
+        if ($whoami) {
+            return $whoami
+        }
+    } catch {
+    }
+    return ""
+}
+
+function Get-CmxPythonExecutable {
+    param(
+        [version]$MinimumVersion = '3.10',
+        [version]$MaximumExclusiveVersion = '3.14',
+        [string]$PreferredVenvDir = ''
+    )
+
+    $candidates = New-Object System.Collections.Generic.List[string]
+    if ($PreferredVenvDir) {
+        $venvPython = Join-Path $PreferredVenvDir 'Scripts\python.exe'
+        if (Test-Path $venvPython) {
+            $candidates.Add($venvPython)
+        }
+    }
+
+    if (Test-CmxCommandExists 'py') {
+        foreach ($candidateVersion in @('3.12', '3.11', '3.10', '3.9')) {
+            try {
+                $exe = (& py "-$candidateVersion" -c "import sys; print(sys.executable)" 2>$null).Trim()
+                if ($exe) { $candidates.Add($exe) }
+            } catch {
+            }
+        }
+    }
+
+    foreach ($cmd in @('python', 'python3')) {
+        if (Test-CmxCommandExists $cmd) {
+            try {
+                $exe = (& $cmd -c "import sys; print(sys.executable)" 2>$null).Trim()
+                if ($exe) { $candidates.Add($exe) }
+            } catch {
+            }
+        }
+    }
+
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        try {
+            $versionText = (& $candidate -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null).Trim()
+            if (-not $versionText) { continue }
+            $version = [version]$versionText
+            if ($version -ge $MinimumVersion -and $version -lt $MaximumExclusiveVersion) {
+                return $candidate
+            }
+        } catch {
+        }
+    }
+
+    return $null
+}
+
+function Install-CmxPythonWithWinget {
+    param([string]$PackageId = 'Python.Python.3.11')
+    if (-not (Test-CmxCommandExists 'winget')) {
+        throw "Python was not found and winget is not available to install it automatically."
+    }
+    Write-CmxServiceStep "Installing Python with winget"
+    & winget install --id $PackageId --exact --silent --accept-package-agreements --accept-source-agreements
+}
+
+function Ensure-CmxVenv {
+    param(
+        [Parameter(Mandatory)][string]$PythonExe,
+        [Parameter(Mandatory)][string]$VenvDir
+    )
+    if (-not (Test-Path (Join-Path $VenvDir 'Scripts\python.exe'))) {
+        Write-CmxServiceStep "Creating service virtual environment"
+        & $PythonExe -m venv $VenvDir
+    }
+    return (Join-Path $VenvDir 'Scripts\python.exe')
+}
+
+function Invoke-CmxPython {
+    param(
+        [Parameter(Mandatory)][string]$PythonExe,
+        [Parameter(Mandatory)][string[]]$Arguments,
+        [Parameter(Mandatory)][string]$WorkingDirectory
+    )
+    Push-Location $WorkingDirectory
+    try {
+        & $PythonExe @Arguments
+        if ($LASTEXITCODE -ne 0) {
+            throw "Python command failed: $PythonExe $($Arguments -join ' ')"
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
+function Install-CmxEditablePythonPackage {
+    param(
+        [Parameter(Mandatory)][string]$PythonExe,
+        [Parameter(Mandatory)][string]$WorkingDirectory,
+        [switch]$RunPywin32PostInstall
+    )
+    Write-CmxServiceStep "Installing Python dependencies"
+    Invoke-CmxPython -PythonExe $PythonExe -Arguments @('-m', 'pip', 'install', '--upgrade', 'pip', 'setuptools', 'wheel') -WorkingDirectory $WorkingDirectory
+    Invoke-CmxPython -PythonExe $PythonExe -Arguments @('-m', 'pip', 'install', '-e', '.') -WorkingDirectory $WorkingDirectory
+
+    if ($RunPywin32PostInstall) {
+        $postInstall = Join-Path (Split-Path $PythonExe -Parent) 'pywin32_postinstall.py'
+        if (Test-Path $postInstall) {
+            Write-CmxServiceStep "Running pywin32 post-install"
+            Invoke-CmxPython -PythonExe $PythonExe -Arguments @($postInstall, '-install') -WorkingDirectory $WorkingDirectory
+        }
+    }
+}
+
 function Wait-CmxHttpHealth {
     param(
         [Parameter(Mandatory)][string]$Url,
