@@ -286,3 +286,82 @@ function New-CmxWheelBundle {
         Copy-Item $source $target -Force
     }
 }
+
+function New-CmxRemoteAccessWheelBundle {
+    <#
+    .SYNOPSIS
+        Build a standard CRA copy-only wheel bundle for a service package.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$ProjectDirectory,
+        [Parameter(Mandatory)][string]$PackageName,
+        [array]$ExtraRepositories = @(),
+        [string]$OutputDirectoryName = 'dist-bundle',
+        [string]$WheelsDirectoryName = 'wheels'
+    )
+
+    $craRoot = Join-Path $ProjectDirectory '..\..\interfaces\cmx-remote-access\packages\cmx-remote-access'
+    if (-not (Test-Path $craRoot)) {
+        throw "Missing CRA package root: $craRoot"
+    }
+
+    $repositories = @()
+    foreach ($repo in $ExtraRepositories) {
+        $repositories += $repo
+    }
+    $repositories += @{ Name = 'cmx-remote-access'; Path = $craRoot }
+    $repositories += @{ Name = $PackageName; Path = $ProjectDirectory }
+
+    $bundleFiles = @(
+        @{ Source = (Join-Path $ProjectDirectory 'install-portable.ps1'); Destination = 'install-portable.ps1' },
+        @{ Source = (Join-Path $ProjectDirectory 'install-service.ps1'); Destination = 'install-service.ps1' },
+        @{ Source = (Join-Path $ProjectDirectory '.env.example'); Destination = '.env.example' },
+        @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
+        @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
+    )
+    $nssmSource = Get-CmxOptionalNssmSource
+    if ($nssmSource) {
+        $bundleFiles += @{ Source = $nssmSource; Destination = 'tools\nssm.exe' }
+    }
+
+    New-CmxWheelBundle `
+        -OutputDirectory (Join-Path $ProjectDirectory $OutputDirectoryName) `
+        -WheelsDirectoryName $WheelsDirectoryName `
+        -Repositories $repositories `
+        -Files $bundleFiles
+}
+
+function Invoke-CmxRemoteAccessBundleBuild {
+    <#
+    .SYNOPSIS
+        Bootstrap Poetry, build a standard CRA wheel bundle, and zip it.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$ProjectDirectory,
+        [Parameter(Mandatory)][string]$PackageName,
+        [array]$ExtraRepositories = @(),
+        [string]$OutputDirectoryName = 'dist-bundle',
+        [string]$ZipFileName = "$PackageName-bundle.zip"
+    )
+
+    Write-Host "Building $PackageName portable bundle with CRA build core..." -ForegroundColor Cyan
+    Invoke-CmxPoetryBootstrap -ProjectDirectory $ProjectDirectory
+
+    New-CmxRemoteAccessWheelBundle `
+        -ProjectDirectory $ProjectDirectory `
+        -PackageName $PackageName `
+        -ExtraRepositories $ExtraRepositories `
+        -OutputDirectoryName $OutputDirectoryName
+
+    $bundleDir = Join-Path $ProjectDirectory $OutputDirectoryName
+    $zipPath = Join-Path (Join-Path $ProjectDirectory 'dist') $ZipFileName
+    if (-not (Test-Path $bundleDir)) {
+        throw "Bundle directory was not created: $bundleDir"
+    }
+
+    Compress-CmxArchiveRobust -SourcePath $bundleDir -DestinationPath $zipPath
+
+    Write-Host "Build complete." -ForegroundColor Green
+    Write-Host "Folder to inspect: $OutputDirectoryName"
+    Write-Host "Zip to copy: dist\\$ZipFileName"
+}

@@ -452,3 +452,92 @@ function Invoke-CmxEnvWizard {
     Export-CmxDotEnvFile -Path $EnvPath -Variables $vars
     Assert-CmxEnvFileHasKeys -EnvPath $EnvPath -RequiredKeys $RequiredKeys -ServiceLabel $ServiceLabel
 }
+
+function Invoke-CmxPortableWheelInstall {
+    <#
+    .SYNOPSIS
+        Install a CRA service from a portable wheel bundle into Program Files.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$BundleDirectory,
+        [Parameter(Mandatory)][string]$InstallRoot,
+        [Parameter(Mandatory)][string]$ConfigDir,
+        [Parameter(Mandatory)][string]$ServiceLabel,
+        [switch]$SkipEnvWizard,
+        [switch]$SkipPrompts,
+        [scriptblock]$BuildVariables
+    )
+
+    $wheelsDir = Join-Path $BundleDirectory 'wheels'
+    if (-not (Test-Path $wheelsDir)) {
+        throw "Missing wheels folder: $wheelsDir"
+    }
+
+    $wheels = @(Get-ChildItem -Path $wheelsDir -Filter '*.whl' -File)
+    if ($wheels.Count -eq 0) {
+        throw "No .whl files in $wheelsDir"
+    }
+
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin) {
+        throw "Run elevated (Administrator) so the app can be installed under Program Files."
+    }
+
+    $pyCmd = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $pyCmd) {
+        throw "Python 3.10+ must be on PATH to create the venv."
+    }
+
+    Write-CmxBanner "Install $ServiceLabel (portable bundle)"
+    Write-Host "Install root:  $InstallRoot" -ForegroundColor DarkGray
+    Write-Host "Config (.env): $ConfigDir\.env" -ForegroundColor DarkGray
+
+    if (-not (Test-Path $InstallRoot)) {
+        New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
+    }
+
+    $venv = Join-Path $InstallRoot 'venv'
+    if (-not (Test-Path $venv)) {
+        & python -m venv $venv
+    }
+
+    $pip = Join-Path $venv 'Scripts\pip.exe'
+    $py = Join-Path $venv 'Scripts\python.exe'
+
+    & $pip install --upgrade pip | Out-Null
+    $wheelPaths = @($wheels | ForEach-Object { $_.FullName })
+    & $pip install --no-index --find-links $wheelsDir @wheelPaths
+    if ($LASTEXITCODE -ne 0) {
+        throw "pip install failed."
+    }
+
+    if (-not (Test-Path $ConfigDir)) {
+        New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+    }
+    $example = Join-Path $BundleDirectory '.env.example'
+    if (Test-Path $example) {
+        Copy-Item $example (Join-Path $ConfigDir '.env.example') -Force
+    }
+
+    $envPath = Join-Path $ConfigDir '.env'
+    if ($BuildVariables) {
+        Invoke-CmxEnvWizard `
+            -EnvPath $envPath `
+            -SkipPrompts:$SkipPrompts `
+            -SkipEnvWizard:$SkipEnvWizard `
+            -ServiceLabel $ServiceLabel `
+            -BuildVariables $BuildVariables `
+            -SkipPromptWarning "Skipping interactive .env creation (-SkipPrompts). Create ${envPath} manually (see .env.example)." `
+            -SkipWizardMessage 'Skipping .env wizard (-SkipEnvWizard).'
+    }
+    elseif ($SkipEnvWizard -or $SkipPrompts) {
+        Write-Host "Skipping .env wizard. Create ${envPath} manually if needed." -ForegroundColor DarkGray
+    }
+
+    return @{
+        PythonExe    = $py
+        InstallRoot  = $InstallRoot
+        ConfigDir    = $ConfigDir
+        EnvPath      = $envPath
+    }
+}

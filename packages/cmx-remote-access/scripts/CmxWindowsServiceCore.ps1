@@ -257,3 +257,62 @@ function Remove-CmxNssmService {
 
     Write-Host "Service '$ServiceName' removed."
 }
+
+function Install-CmxPythonModuleNssmService {
+    <#
+    .SYNOPSIS
+        Resolve Python/NSSM and register a Python module as a Windows service.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$ScriptDirectory,
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][string]$ModuleName,
+        [Parameter(Mandatory)][string]$DisplayName,
+        [Parameter(Mandatory)][string]$Description,
+        [string]$PythonExe,
+        [string]$AppDirectory
+    )
+
+    $nssm = Resolve-CmxNssmPath -BundleRoots @($ScriptDirectory)
+
+    try {
+        Assert-CmxAdmin
+    } catch {
+        Write-Warning "NSSM service install usually requires Administrator. If this fails, re-run elevated."
+    }
+
+    $appDir = if ($AppDirectory) { $AppDirectory } else { $ScriptDirectory }
+
+    if ($PythonExe) {
+        $py = $PythonExe
+        if (-not (Test-Path $py)) {
+            throw "Python not found: $py"
+        }
+    }
+    else {
+        Push-Location $ScriptDirectory
+        try {
+            $py = poetry run python -c "import sys; print(sys.executable)" 2>$null
+            if ($LASTEXITCODE -ne 0 -or -not $py) {
+                throw "Could not resolve Poetry Python. Run install.ps1 first, or pass -PythonExe and -AppDirectory for a portable install."
+            }
+            $py = $py.Trim()
+        } finally {
+            Pop-Location
+        }
+    }
+
+    $logs = Join-Path $appDir 'logs'
+    Install-OrUpdate-CmxNssmService `
+        -NssmExe $nssm `
+        -ServiceName $ServiceName `
+        -ApplicationPath $py `
+        -ApplicationArgs "-m $ModuleName" `
+        -AppDirectory $appDir `
+        -DisplayName $DisplayName `
+        -Description $Description `
+        -LogsDirectory $logs
+
+    Write-Host "[OK] Service installed. Starting..." -ForegroundColor Green
+    Start-CmxService -ServiceName $ServiceName -NssmExe $nssm
+}
