@@ -504,9 +504,9 @@ function Invoke-CmxPortableWheelInstall {
     $pip = Join-Path $venv 'Scripts\pip.exe'
     $py = Join-Path $venv 'Scripts\python.exe'
 
-    & $pip install --upgrade pip | Out-Null
+    & $py -m pip install --upgrade pip | Out-Null
     $wheelPaths = @($wheels | ForEach-Object { $_.FullName })
-    & $pip install --no-index --find-links $wheelsDir @wheelPaths
+    & $pip install --no-index --find-links $wheelsDir --no-deps @wheelPaths
     if ($LASTEXITCODE -ne 0) {
         throw "pip install failed."
     }

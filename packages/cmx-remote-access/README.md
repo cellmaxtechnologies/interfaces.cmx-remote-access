@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.6 | 2026-05-27 | Upgrade bundled virtualenv pip through python -m pip and install wheel bundles without dependency resolution. |
 | 0.3.5 | 2026-05-27 | Generate useful documentation abstracts even when package descriptions are empty. |
 | 0.3.4 | 2026-05-26 | Standardize server bundle install wording around install-service.ps1. |
 | 0.3.3 | 2026-05-26 | Standardize server bundles around one install-service.ps1 entrypoint. |
