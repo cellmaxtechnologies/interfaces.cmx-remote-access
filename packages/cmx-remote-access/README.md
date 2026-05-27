@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.7 | 2026-05-27 | Skip incompatible wheels during bundled installs so one zip can carry wheels for multiple Python versions. |
 | 0.3.6 | 2026-05-27 | Upgrade bundled virtualenv pip through python -m pip and install wheel bundles without dependency resolution. |
 | 0.3.5 | 2026-05-27 | Generate useful documentation abstracts even when package descriptions are empty. |
 | 0.3.4 | 2026-05-26 | Standardize server bundle install wording around install-service.ps1. |

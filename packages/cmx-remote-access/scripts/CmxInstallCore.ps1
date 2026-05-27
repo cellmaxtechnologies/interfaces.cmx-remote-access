@@ -505,10 +505,17 @@ function Invoke-CmxPortableWheelInstall {
     $py = Join-Path $venv 'Scripts\python.exe'
 
     & $py -m pip install --upgrade pip | Out-Null
-    $wheelPaths = @($wheels | ForEach-Object { $_.FullName })
-    & $pip install --no-index --find-links $wheelsDir --no-deps @wheelPaths
-    if ($LASTEXITCODE -ne 0) {
-        throw "pip install failed."
+    foreach ($wheel in $wheels) {
+        $output = & $pip install --no-index --find-links $wheelsDir --no-deps $wheel.FullName 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            $text = ($output | Out-String)
+            if ($text -match 'not a supported wheel on this platform') {
+                Write-Host "Skipping incompatible wheel: $($wheel.Name)" -ForegroundColor DarkGray
+                continue
+            }
+            Write-Host $text
+            throw "pip install failed."
+        }
     }
 
     if (-not (Test-Path $ConfigDir)) {
