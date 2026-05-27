@@ -487,6 +487,14 @@ function Invoke-CmxPortableWheelInstall {
     if (-not $pyCmd) {
         throw "Python 3.10+ must be on PATH to create the venv."
     }
+    $versionText = (& python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')" 2>$null).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($versionText)) {
+        throw "Could not determine Python version from PATH."
+    }
+    $pythonVersion = [version]$versionText
+    if ($pythonVersion -lt [version]'3.10.0' -or $pythonVersion -ge [version]'3.14.0') {
+        throw "Python 3.10 through 3.13 is required; found $pythonVersion."
+    }
 
     Write-CmxBanner "Install $ServiceLabel server"
     Write-Host "Install root:  $InstallRoot" -ForegroundColor DarkGray
