@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.9 | 2026-05-28 | Add a shared strict live-service smoke-test helper so CRA-backed APIs use the same URL and token template. |
 | 0.3.8 | 2026-05-27 | Validate bundled service installs use Python 3.10 through 3.13 before creating the venv. |
 | 0.3.7 | 2026-05-27 | Skip incompatible wheels during bundled installs so one zip can carry wheels for multiple Python versions. |
 | 0.3.6 | 2026-05-27 | Upgrade bundled virtualenv pip through python -m pip and install wheel bundles without dependency resolution. |

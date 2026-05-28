@@ -11,6 +11,11 @@ from cmx_remote_access.config import RemoteAccessSettings, load_remote_access_se
 from cmx_remote_access.client_env import ensure_client_env_file
 from cmx_remote_access.client_init import init_remote_access
 from cmx_remote_access.client_adapter import RemoteClientConfig, resolve_remote_client_config
+from cmx_remote_access.live_service_test import (
+    LiveServiceTestConfig,
+    live_service_get_json,
+    resolve_live_service_test_config,
+)
 from cmx_remote_access.contracts import (
     REMOTE_ACCESS_PROXY_VERSION_HEADER,
     RemoteCommand,
@@ -22,6 +27,7 @@ __all__ = [
     "AuthContext",
     "RemoteAccessSettings",
     "RemoteCommand",
+    "LiveServiceTestConfig",
     "RemoteResult",
     "REMOTE_ACCESS_PROXY_VERSION_HEADER",
     "authenticate_bearer",
@@ -29,7 +35,9 @@ __all__ = [
     "ensure_client_env_file",
     "init_remote_access",
     "RemoteClientConfig",
+    "live_service_get_json",
     "resolve_remote_client_config",
+    "resolve_live_service_test_config",
     "health_payload",
     "load_remote_access_settings",
     "require_roles",
