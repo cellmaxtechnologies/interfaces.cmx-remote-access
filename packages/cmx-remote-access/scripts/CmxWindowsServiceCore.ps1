@@ -3,7 +3,7 @@
     Shared Windows service helpers for CRA packages.
 #>
 
-$script:CmxWindowsServiceCoreVersion = '1.1.0'
+$script:CmxWindowsServiceCoreVersion = '1.2.0'
 
 function Write-CmxServiceStep {
     param([Parameter(Mandatory)][string]$Message)
@@ -379,6 +379,55 @@ function Remove-CmxNssmService {
     & $NssmExe remove $ServiceName confirm
 
     Write-Host "Service '$ServiceName' removed."
+}
+
+function Remove-CmxFirewallRules {
+    param([Parameter(Mandatory)][string]$DisplayNamePattern)
+    $rules = @(Get-NetFirewallRule -DisplayName $DisplayNamePattern -ErrorAction SilentlyContinue)
+    if ($rules.Count -eq 0) {
+        return
+    }
+    Write-CmxServiceStep "Removing Windows Firewall rule"
+    $rules | Remove-NetFirewallRule
+}
+
+function Uninstall-CmxServicePackage {
+    param(
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][string]$InstallRoot,
+        [Parameter(Mandatory)][string]$ConfigDir,
+        [string]$FirewallDisplayNamePattern = "",
+        [switch]$RemoveConfig
+    )
+
+    Assert-CmxAdmin
+    $nssm = Resolve-CmxNssmPath -BundleRoots @($PSScriptRoot, (Split-Path -Parent $PSScriptRoot), $InstallRoot)
+
+    if (Test-CmxServiceExists -Name $ServiceName) {
+        Write-CmxServiceStep "Removing Windows service"
+        Remove-CmxNssmService -NssmExe $nssm -ServiceName $ServiceName
+    } else {
+        Write-Host "Service '$ServiceName' is not installed."
+    }
+
+    $rulePattern = if ($FirewallDisplayNamePattern) { $FirewallDisplayNamePattern } else { "$ServiceName*" }
+    Remove-CmxFirewallRules -DisplayNamePattern $rulePattern
+
+    if (Test-Path $InstallRoot) {
+        Write-CmxServiceStep "Removing installed application files"
+        Remove-Item -LiteralPath $InstallRoot -Recurse -Force
+    }
+
+    if ($RemoveConfig -and (Test-Path $ConfigDir)) {
+        Write-CmxServiceStep "Removing configuration"
+        Remove-Item -LiteralPath $ConfigDir -Recurse -Force
+    } elseif (Test-Path $ConfigDir) {
+        Write-Host "Kept configuration in: $ConfigDir"
+        Write-Host "Run with -RemoveConfig to delete saved tokens/configuration."
+    }
+
+    Write-Host ""
+    Write-Host "Uninstall complete for '$ServiceName'."
 }
 
 function Install-CmxPythonModuleNssmService {

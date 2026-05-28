@@ -7,7 +7,7 @@
     so CRA owns build flow and child repos only provide specifics.
 #>
 
-$script:CmxBuildCoreVersion = '1.4.0'
+$script:CmxBuildCoreVersion = '1.5.0'
 
 function Write-CmxBuildBanner {
     param([string]$Title)
@@ -142,6 +142,18 @@ function Copy-CmxBuildFiles {
         }
         Copy-Item $source $target -Force
     }
+}
+
+function Add-CmxBundleFileIfExists {
+    param(
+        [Parameter(Mandatory)][array]$Files,
+        [Parameter(Mandatory)][string]$Source,
+        [Parameter(Mandatory)][string]$Destination
+    )
+    if (Test-Path $Source) {
+        return @($Files) + @{ Source = $Source; Destination = $Destination }
+    }
+    return @($Files)
 }
 
 function Get-CmxOptionalNssmSource {
@@ -408,6 +420,10 @@ function New-CmxRemoteAccessWheelBundle {
         @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxWindowsServiceCore.ps1'); Destination = 'scripts\CmxWindowsServiceCore.ps1' }
     )
+    $bundleFiles = Add-CmxBundleFileIfExists `
+        -Files $bundleFiles `
+        -Source (Join-Path $ProjectDirectory 'uninstall-service.ps1') `
+        -Destination 'uninstall-service.ps1'
     $nssmSource = Get-CmxOptionalNssmSource
     if ($nssmSource) {
         $bundleFiles += @{ Source = $nssmSource; Destination = 'tools\nssm.exe' }
@@ -485,6 +501,10 @@ function Invoke-CmxRemoteAccessPyInstallerBundleBuild {
     foreach ($file in $AdditionalBundleFiles) {
         $bundleFiles += $file
     }
+    $bundleFiles = Add-CmxBundleFileIfExists `
+        -Files $bundleFiles `
+        -Source (Join-Path $ProjectDirectory 'uninstall-service.ps1') `
+        -Destination 'uninstall-service.ps1'
     $bundleFiles += @(
         @{ Source = $documentation.Pdf; Destination = 'documentation\documentation.pdf' },
         @{ Source = (Join-Path $craRoot 'scripts\CmxInstallCore.ps1'); Destination = 'scripts\CmxInstallCore.ps1' },
