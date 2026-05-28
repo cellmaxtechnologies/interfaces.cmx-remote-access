@@ -397,6 +397,7 @@ function Uninstall-CmxServicePackage {
         [Parameter(Mandatory)][string]$InstallRoot,
         [Parameter(Mandatory)][string]$ConfigDir,
         [string]$FirewallDisplayNamePattern = "",
+        [switch]$RemoveInstallRoot,
         [switch]$RemoveConfig
     )
 
@@ -413,9 +414,11 @@ function Uninstall-CmxServicePackage {
     $rulePattern = if ($FirewallDisplayNamePattern) { $FirewallDisplayNamePattern } else { "$ServiceName*" }
     Remove-CmxFirewallRules -DisplayNamePattern $rulePattern
 
-    if (Test-Path $InstallRoot) {
+    if ($RemoveInstallRoot -and (Test-Path $InstallRoot)) {
         Write-CmxServiceStep "Removing installed application files"
         Remove-Item -LiteralPath $InstallRoot -Recurse -Force
+    } elseif (Test-Path $InstallRoot) {
+        Write-Host "Kept installed application files in: $InstallRoot"
     }
 
     if ($RemoveConfig -and (Test-Path $ConfigDir)) {
