@@ -3,7 +3,7 @@
     Shared Windows service helpers for CRA packages.
 #>
 
-$script:CmxWindowsServiceCoreVersion = '1.3.1'
+$script:CmxWindowsServiceCoreVersion = '1.4.0'
 
 function Write-CmxServiceStep {
     param([Parameter(Mandatory)][string]$Message)
@@ -97,30 +97,6 @@ function Set-CmxNssmValue {
     }
 }
 
-function Reset-CmxNssmValue {
-    param(
-        [Parameter(Mandatory)][string]$NssmExe,
-        [Parameter(Mandatory)][string]$ServiceName,
-        [Parameter(Mandatory)][string]$Key
-    )
-    & $NssmExe reset $ServiceName $Key | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed resetting NSSM value '$Key'."
-    }
-}
-
-function Clear-CmxNssmValue {
-    param(
-        [Parameter(Mandatory)][string]$NssmExe,
-        [Parameter(Mandatory)][string]$ServiceName,
-        [Parameter(Mandatory)][string]$Key
-    )
-    & $NssmExe set $ServiceName $Key "" | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed clearing NSSM value '$Key'."
-    }
-}
-
 function Install-OrUpdate-CmxNssmService {
     param(
         [Parameter(Mandatory)][string]$NssmExe,
@@ -139,32 +115,40 @@ function Install-OrUpdate-CmxNssmService {
     $stdoutPath = Join-Path $LogsDirectory "stdout.log"
     $stderrPath = Join-Path $LogsDirectory "stderr.log"
 
-    if (-not (Test-CmxServiceExists -Name $ServiceName)) {
-        Write-CmxServiceStep "Creating Windows service"
-        if ([string]::IsNullOrWhiteSpace($ApplicationArgs)) {
-            $installOutput = & $NssmExe install $ServiceName $ApplicationPath 2>&1
-        } else {
-            $installOutput = & $NssmExe install $ServiceName $ApplicationPath $ApplicationArgs 2>&1
-        }
-        if ($LASTEXITCODE -ne 0) {
-            $details = (($installOutput | ForEach-Object { "$_" }) -join [Environment]::NewLine).Trim()
-            if ($details) {
-                throw "Failed to create service '$ServiceName'. NSSM said: $details"
-            }
-            throw "Failed to create service '$ServiceName'."
-        }
-    } else {
-        Write-CmxServiceStep "Updating existing Windows service"
+    if (Test-CmxServiceExists -Name $ServiceName) {
+        Write-CmxServiceStep "Replacing existing Windows service"
         try {
             Stop-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
         } catch {
         }
-        & $NssmExe set $ServiceName Application $ApplicationPath | Out-Null
-        if ([string]::IsNullOrWhiteSpace($ApplicationArgs)) {
-            Clear-CmxNssmValue -NssmExe $NssmExe -ServiceName $ServiceName -Key "AppParameters"
-        } else {
-            & $NssmExe set $ServiceName AppParameters $ApplicationArgs | Out-Null
+        $removeOutput = & $NssmExe remove $ServiceName confirm 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            $details = (($removeOutput | ForEach-Object { "$_" }) -join [Environment]::NewLine).Trim()
+            if ($details) {
+                throw "Failed to remove existing service '$ServiceName'. NSSM said: $details"
+            }
+            throw "Failed to remove existing service '$ServiceName'."
         }
+        for ($i = 0; $i -lt 20 -and (Test-CmxServiceExists -Name $ServiceName); $i++) {
+            Start-Sleep -Milliseconds 250
+        }
+        if (Test-CmxServiceExists -Name $ServiceName) {
+            throw "Existing service '$ServiceName' was removed by NSSM but is still visible to Windows."
+        }
+    }
+
+    Write-CmxServiceStep "Creating Windows service"
+    if ([string]::IsNullOrWhiteSpace($ApplicationArgs)) {
+        $installOutput = & $NssmExe install $ServiceName $ApplicationPath 2>&1
+    } else {
+        $installOutput = & $NssmExe install $ServiceName $ApplicationPath $ApplicationArgs 2>&1
+    }
+    if ($LASTEXITCODE -ne 0) {
+        $details = (($installOutput | ForEach-Object { "$_" }) -join [Environment]::NewLine).Trim()
+        if ($details) {
+            throw "Failed to create service '$ServiceName'. NSSM said: $details"
+        }
+        throw "Failed to create service '$ServiceName'."
     }
 
     Set-CmxNssmValue -NssmExe $NssmExe -ServiceName $ServiceName -Key "AppDirectory" -Value $AppDirectory
