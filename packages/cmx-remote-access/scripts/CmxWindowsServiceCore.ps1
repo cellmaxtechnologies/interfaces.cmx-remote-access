@@ -3,7 +3,7 @@
     Shared Windows service helpers for CRA packages.
 #>
 
-$script:CmxWindowsServiceCoreVersion = '1.2.0'
+$script:CmxWindowsServiceCoreVersion = '1.3.0'
 
 function Write-CmxServiceStep {
     param([Parameter(Mandatory)][string]$Message)
@@ -352,15 +352,18 @@ function Wait-CmxHttpHealth {
     param(
         [Parameter(Mandatory)][string]$Url,
         [int]$Attempts = 30,
-        [int]$DelaySeconds = 2
+        [int]$DelaySeconds = 2,
+        [int]$TimeoutSeconds = 3
     )
     for ($i = 1; $i -le $Attempts; $i++) {
         try {
-            $response = Invoke-RestMethod -Uri $Url -Method Get -TimeoutSec 10
+            Write-Host "Health check attempt $i/$Attempts`: $Url" -ForegroundColor DarkGray
+            $response = Invoke-RestMethod -Uri $Url -Method Get -TimeoutSec $TimeoutSeconds
             if ($response.status -eq "ok") {
                 return $true
             }
         } catch {
+            Write-Host "  Not ready: $($_.Exception.Message)" -ForegroundColor DarkGray
         }
         Start-Sleep -Seconds $DelaySeconds
     }

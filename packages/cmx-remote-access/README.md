@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.12 | 2026-05-29 | Show service health wait progress and allow shorter probe timeouts during Windows service installs. |
 | 0.3.11 | 2026-05-28 | Make uninstall cleanup configurable so packages can keep or remove install roots explicitly. |
 | 0.3.10 | 2026-05-28 | Add shared uninstall-service support for CRA bundles so removal is explicit and consistent. |
 | 0.3.9 | 2026-05-28 | Add a shared strict live-service smoke-test helper so CRA-backed APIs use the same URL and token template. |
