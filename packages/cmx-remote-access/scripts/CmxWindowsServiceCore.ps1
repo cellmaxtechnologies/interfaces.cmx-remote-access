@@ -3,7 +3,7 @@
     Shared Windows service helpers for CRA packages.
 #>
 
-$script:CmxWindowsServiceCoreVersion = '1.3.0'
+$script:CmxWindowsServiceCoreVersion = '1.3.1'
 
 function Write-CmxServiceStep {
     param([Parameter(Mandatory)][string]$Message)
@@ -109,6 +109,18 @@ function Reset-CmxNssmValue {
     }
 }
 
+function Clear-CmxNssmValue {
+    param(
+        [Parameter(Mandatory)][string]$NssmExe,
+        [Parameter(Mandatory)][string]$ServiceName,
+        [Parameter(Mandatory)][string]$Key
+    )
+    & $NssmExe set $ServiceName $Key "" | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed clearing NSSM value '$Key'."
+    }
+}
+
 function Install-OrUpdate-CmxNssmService {
     param(
         [Parameter(Mandatory)][string]$NssmExe,
@@ -149,7 +161,7 @@ function Install-OrUpdate-CmxNssmService {
         }
         & $NssmExe set $ServiceName Application $ApplicationPath | Out-Null
         if ([string]::IsNullOrWhiteSpace($ApplicationArgs)) {
-            Reset-CmxNssmValue -NssmExe $NssmExe -ServiceName $ServiceName -Key "AppParameters"
+            Clear-CmxNssmValue -NssmExe $NssmExe -ServiceName $ServiceName -Key "AppParameters"
         } else {
             & $NssmExe set $ServiceName AppParameters $ApplicationArgs | Out-Null
         }

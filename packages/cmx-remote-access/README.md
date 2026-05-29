@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.13 | 2026-05-29 | Clear empty NSSM AppParameters during service updates without failing reinstall flows. |
 | 0.3.12 | 2026-05-29 | Show service health wait progress and allow shorter probe timeouts during Windows service installs. |
 | 0.3.11 | 2026-05-28 | Make uninstall cleanup configurable so packages can keep or remove install roots explicitly. |
 | 0.3.10 | 2026-05-28 | Add shared uninstall-service support for CRA bundles so removal is explicit and consistent. |
