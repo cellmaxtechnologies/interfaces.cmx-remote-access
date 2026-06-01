@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 0.3.15 | 2026-06-01 | Prefer routed physical LAN IPv4 addresses when installers print client URLs. |
 | 0.3.14 | 2026-05-29 | Replace existing NSSM services by removing and recreating them instead of editing brittle service parameters in place. |
 | 0.3.13 | 2026-05-29 | Clear empty NSSM AppParameters during service updates without failing reinstall flows. |
 | 0.3.12 | 2026-05-29 | Show service health wait progress and allow shorter probe timeouts during Windows service installs. |

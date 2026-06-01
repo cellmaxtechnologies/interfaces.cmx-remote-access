@@ -11,7 +11,7 @@
     This file is part of the cmx-remote-access package so every API repo can offer the same “feel”.
 #>
 
-$script:CmxInstallCoreVersion = '1.2.0'
+$script:CmxInstallCoreVersion = '1.3.0'
 $script:CmxPythonArgs = @()
 
 function Write-CmxBanner {
@@ -257,14 +257,38 @@ function Prompt-CmxValue {
 }
 
 function Get-CmxServerIPv4 {
+    $ipConfigs = @(Get-NetIPConfiguration -ErrorAction SilentlyContinue)
+    $adapters = @(Get-NetAdapter -ErrorAction SilentlyContinue)
+    $virtualAliasPattern = "Loopback|vEthernet|Default Switch|VMware|VirtualBox|Hyper-V|Bluetooth|Tailscale|ZeroTier"
+
     $candidates = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
         Where-Object {
             $_.IPAddress -and
             $_.IPAddress -ne "127.0.0.1" -and
+            $_.IPAddress -notlike "169.254.*" -and
             $_.PrefixOrigin -ne "WellKnown" -and
-            $_.InterfaceAlias -notmatch "Loopback"
+            $_.InterfaceAlias -notmatch $virtualAliasPattern
         } |
-        Sort-Object SkipAsSource, InterfaceMetric
+        ForEach-Object {
+            $address = $_
+            $config = $ipConfigs | Where-Object { $_.InterfaceIndex -eq $address.InterfaceIndex } | Select-Object -First 1
+            $adapter = $adapters | Where-Object { $_.InterfaceIndex -eq $address.InterfaceIndex } | Select-Object -First 1
+            [pscustomobject]@{
+                IPAddress       = $address.IPAddress
+                InterfaceAlias  = $address.InterfaceAlias
+                InterfaceMetric = $address.InterfaceMetric
+                SkipAsSource    = $address.SkipAsSource
+                HasGateway      = [bool]($config -and $config.IPv4DefaultGateway)
+                AdapterUp       = [bool]($adapter -and $adapter.Status -eq "Up")
+                PhysicalAdapter = [bool]($adapter -and $adapter.HardwareInterface)
+            }
+        } |
+        Sort-Object `
+            @{ Expression = { if ($_.HasGateway) { 0 } else { 1 } } }, `
+            @{ Expression = { if ($_.AdapterUp) { 0 } else { 1 } } }, `
+            @{ Expression = { if ($_.PhysicalAdapter) { 0 } else { 1 } } }, `
+            SkipAsSource, `
+            InterfaceMetric
 
     $selected = $candidates | Select-Object -First 1
     if ($selected -and $selected.IPAddress) {
