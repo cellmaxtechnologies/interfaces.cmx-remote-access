@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "defaults": {
+    "windows_user": "Cellmax",
+    "credential_secret_name": "CMX_PROD_WINDOWS_PASSWORD",
+    "applications_root": "C:\\Cellmax\\Applications",
+    "desktop_root": "C:\\Users\\Public\\Desktop"
+  },
+  "stations": [
+    {
+      "station_id": "CM-PROD-GOT-FIN-A",
+      "computer_name": "CM-GOT-FIN-A",
+      "role": "final",
+      "site": "GOT",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": "10.0.245.151",
+        "applications_share": "CellmaxApplications",
+        "desktop_share": "CellmaxDesktop"
+      },
+      "hardware": {
+        "pim": true,
+        "vna": "10.0.245.134",
+        "shaker": true
+      }
+    },
+    {
+      "station_id": "CM-PROD-GOT-FIN-B",
+      "computer_name": "CM-GOT-FIN-B",
+      "role": "final",
+      "site": "GOT",
+      "line": "B",
+      "endpoint": {
+        "transport": "smb",
+        "host": "10.0.245.152",
+        "applications_share": "CellmaxApplications",
+        "desktop_share": "CellmaxDesktop"
+      },
+      "hardware": {
+        "pim": true,
+        "vna": "10.0.245.137",
+        "shaker": true
+      }
+    },
+    {
+      "station_id": "CM-PROD-GOT-PRE-A",
+      "computer_name": "CM-GOT-PRE-A",
+      "role": "pre",
+      "site": "GOT",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": "10.0.245.171",
+        "applications_share": "C$",
+        "applications_subdir": "Cellmax\\Applications",
+        "desktop_share": "C$",
+        "desktop_subdir": "Users\\Public\\Desktop"
+      },
+      "hardware": {
+        "pim": true,
+        "vna": false,
+        "shaker": false
+      }
+    },
+    {
+      "station_id": "CM-PROD-GOT-PRE-B",
+      "computer_name": "CM-GOT-PRE-B",
+      "role": "pre",
+      "site": "GOT",
+      "line": "B",
+      "endpoint": {
+        "transport": "smb",
+        "host": "10.0.245.200",
+        "applications_share": "C$",
+        "applications_subdir": "Cellmax\\Applications",
+        "desktop_share": "C$",
+        "desktop_subdir": "Users\\Public\\Desktop"
+      },
+      "hardware": {
+        "pim": null,
+        "vna": false,
+        "shaker": false
+      }
+    },
+    {
+      "station_id": "CM-PROD-GOT-RET-A",
+      "computer_name": "CM-GOT-RET-A",
+      "role": "ret",
+      "site": "GOT",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": "10.0.245.179",
+        "applications_share": "CellmaxApplications",
+        "desktop_share": "CellmaxDesktop"
+      },
+      "hardware": {
+        "ret": true
+      }
+    },
+    {
+      "station_id": "CM-PROD-GOT-RET-B",
+      "computer_name": "CM-GOT-RET-B",
+      "role": "ret",
+      "site": "GOT",
+      "line": "B",
+      "endpoint": {
+        "transport": "smb",
+        "host": "10.0.245.144",
+        "applications_share": "CellmaxApplications",
+        "desktop_share": "CellmaxDesktop"
+      },
+      "hardware": {
+        "ret": true
+      }
+    },
+    {
+      "station_id": "CM-PROD-GOT-PACK-A",
+      "computer_name": "CM-GOT-PACK-A",
+      "role": "pack",
+      "site": "GOT",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": null
+      },
+      "hardware": {}
+    },
+    {
+      "station_id": "CM-PROD-USA-FIN-A",
+      "computer_name": "CM-USA-FIN-A",
+      "role": "final",
+      "site": "USA",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": null
+      },
+      "hardware": {}
+    },
+    {
+      "station_id": "CM-PROD-GOT-SBT-A",
+      "computer_name": "CM-GOT-SBT-A",
+      "role": "sbt",
+      "site": "GOT",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": null
+      },
+      "hardware": {}
+    },
+    {
+      "station_id": "CM-DEV-KIS-MEAS-A",
+      "computer_name": "CM-KIS-MEAS-A",
+      "role": "meas",
+      "site": "KIS",
+      "line": "A",
+      "endpoint": {
+        "transport": "ssh",
+        "host": null
+      },
+      "hardware": {}
+    },
+    {
+      "station_id": "CM-DEV-KIS-MEAS-B",
+      "computer_name": "CM-KIS-MEAS-B",
+      "role": "meas",
+      "site": "KIS",
+      "line": "B",
+      "endpoint": {
+        "transport": "ssh",
+        "host": null
+      },
+      "hardware": {}
+    }
+  ]
+}

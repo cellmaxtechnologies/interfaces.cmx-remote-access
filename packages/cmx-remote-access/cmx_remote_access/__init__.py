@@ -22,6 +22,11 @@ from cmx_remote_access.contracts import (
     RemoteResult,
     health_payload,
 )
+from cmx_remote_access.deployment import (
+    DeploymentEndpoint,
+    DeploymentStation,
+    load_station_inventory,
+)
 
 __all__ = [
     "AuthContext",
@@ -30,6 +35,8 @@ __all__ = [
     "LiveServiceTestConfig",
     "RemoteResult",
     "REMOTE_ACCESS_PROXY_VERSION_HEADER",
+    "DeploymentEndpoint",
+    "DeploymentStation",
     "authenticate_bearer",
     "authenticate_request",
     "ensure_client_env_file",
@@ -38,6 +45,7 @@ __all__ = [
     "live_service_get_json",
     "resolve_remote_client_config",
     "resolve_live_service_test_config",
+    "load_station_inventory",
     "health_payload",
     "load_remote_access_settings",
     "require_roles",
