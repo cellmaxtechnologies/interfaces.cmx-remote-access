@@ -10,9 +10,6 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $ComputerName,
 
-    [Parameter(Mandatory = $true)]
-    [string] $StationId,
-
     [Parameter(Mandatory = $false)]
     [string] $UserName = "Cellmax",
 
@@ -111,16 +108,6 @@ if (Get-Service sshd -ErrorAction SilentlyContinue) {
 
 New-Item -ItemType Directory -Force -Path $ApplicationsRoot | Out-Null
 New-Item -ItemType Directory -Force -Path $DesktopRoot | Out-Null
-New-Item -ItemType Directory -Force -Path "C:\Cellmax" | Out-Null
-
-$stationInfo = [pscustomobject]@{
-    station_id = $StationId
-    computer_name = $ComputerName
-    windows_user = $UserName
-    applications_root = $ApplicationsRoot
-    desktop_root = $DesktopRoot
-}
-$stationInfo | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "C:\Cellmax\station.json" -Encoding UTF8
 
 Get-SmbShare -Name "CellmaxApplications" -ErrorAction SilentlyContinue | Remove-SmbShare -Force
 Get-SmbShare -Name "CellmaxDesktop" -ErrorAction SilentlyContinue | Remove-SmbShare -Force
@@ -132,8 +119,8 @@ if ($env:COMPUTERNAME -ne $ComputerName) {
 }
 
 Write-Host "Station prepared:" -ForegroundColor Green
-Write-Host "  Station ID:    $StationId"
 Write-Host "  Computer name: $ComputerName"
+Write-Host "  Station ID:    $ComputerName"
 Write-Host "  User:          $UserName"
 Write-Host "  Applications:  $ApplicationsRoot"
 Write-Host "  Desktop:       $DesktopRoot"
