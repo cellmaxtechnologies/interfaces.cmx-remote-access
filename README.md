@@ -46,7 +46,7 @@ The **dashboard application** is **`cmx-dashboard`** at **`cellmaxtechnologies/c
 
 - `packages/cmx-remote-access/` — **Python library** (`cmx_remote_access`): shared **RemoteCommand/RemoteResult** contracts, **FastAPI bearer auth** (`SERVICE_API_TOKEN`, `ADMIN_API_TOKEN`, `AUTH_STRICT`), plus an **optional dev HTTP reverse proxy** (`poetry run cmx-remote-proxy`; see `packages/cmx-remote-access/README.md`).
 - `packages/cmx-remote-access/scripts/CmxInstallCore.ps1` — **shared Windows installer core**; each product ships an `install.ps1` that dot-sources it (see `packages/cmx-remote-access/docs/INSTALLATION.md`).
-- `packages/cmx-remote-access/cmx_remote_access/deployment_inventory.json` — shared station inventory. Station ids intentionally match Windows computer names, for example `CMPROD-GOT-RETA`.
+- `packages/cmx-remote-access/cmx_remote_access/deployment_inventory.json` — shared station inventory. Station ids intentionally match Windows computer names, for example `CM-GOT-RET-A`.
 - `packages/cmx-remote-access/scripts/Initialize-CmxStation.ps1` — local elevated PowerShell script for standardizing a Windows station account, shares, optional SSH readiness, station metadata, and computer name.
 - `packages/pdm-api/` — PDM HTTP integration (existing).
 

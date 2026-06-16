@@ -8,8 +8,8 @@
   },
   "stations": [
     {
-      "station_id": "CMPROD-GOT-FINA",
-      "computer_name": "CMPROD-GOT-FINA",
+      "station_id": "CM-GOT-FIN-A",
+      "computer_name": "CM-GOT-FIN-A",
       "role": "final",
       "site": "GOT",
       "line": "A",
@@ -26,8 +26,8 @@
       }
     },
     {
-      "station_id": "CMPROD-GOT-FINB",
-      "computer_name": "CMPROD-GOT-FINB",
+      "station_id": "CM-GOT-FIN-B",
+      "computer_name": "CM-GOT-FIN-B",
       "role": "final",
       "site": "GOT",
       "line": "B",
@@ -44,8 +44,8 @@
       }
     },
     {
-      "station_id": "CMPROD-GOT-PREA",
-      "computer_name": "CMPROD-GOT-PREA",
+      "station_id": "CM-GOT-PRE-A",
+      "computer_name": "CM-GOT-PRE-A",
       "role": "pre",
       "site": "GOT",
       "line": "A",
@@ -64,8 +64,8 @@
       }
     },
     {
-      "station_id": "CMPROD-GOT-PREB",
-      "computer_name": "CMPROD-GOT-PREB",
+      "station_id": "CM-GOT-PRE-B",
+      "computer_name": "CM-GOT-PRE-B",
       "role": "pre",
       "site": "GOT",
       "line": "B",
@@ -84,8 +84,8 @@
       }
     },
     {
-      "station_id": "CMPROD-GOT-RETA",
-      "computer_name": "CMPROD-GOT-RETA",
+      "station_id": "CM-GOT-RET-A",
+      "computer_name": "CM-GOT-RET-A",
       "role": "ret",
       "site": "GOT",
       "line": "A",
@@ -100,8 +100,8 @@
       }
     },
     {
-      "station_id": "CMPROD-GOT-RETB",
-      "computer_name": "CMPROD-GOT-RETB",
+      "station_id": "CM-GOT-RET-B",
+      "computer_name": "CM-GOT-RET-B",
       "role": "ret",
       "site": "GOT",
       "line": "B",
@@ -116,8 +116,8 @@
       }
     },
     {
-      "station_id": "CMPROD-GOT-PACK",
-      "computer_name": "CMPROD-GOT-PACK",
+      "station_id": "CM-GOT-PACK-A",
+      "computer_name": "CM-GOT-PACK-A",
       "role": "pack",
       "site": "GOT",
       "line": "A",
@@ -128,8 +128,8 @@
       "hardware": {}
     },
     {
-      "station_id": "CMPROD-USA-FINA",
-      "computer_name": "CMPROD-USA-FINA",
+      "station_id": "CM-USA-FIN-A",
+      "computer_name": "CM-USA-FIN-A",
       "role": "final",
       "site": "USA",
       "line": "A",
@@ -140,8 +140,8 @@
       "hardware": {}
     },
     {
-      "station_id": "CMPROD-GOT-SBTA",
-      "computer_name": "CMPROD-GOT-SBTA",
+      "station_id": "CM-GOT-SBT-A",
+      "computer_name": "CM-GOT-SBT-A",
       "role": "sbt",
       "site": "GOT",
       "line": "A",
@@ -177,5 +177,6 @@
     }
   ]
 }
+
 
 
