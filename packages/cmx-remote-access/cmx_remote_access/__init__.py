@@ -24,7 +24,10 @@ from cmx_remote_access.contracts import (
 )
 from cmx_remote_access.deployment import (
     DeploymentEndpoint,
+    DeploymentSettingsIdentity,
     DeploymentStation,
+    deployment_settings_identity,
+    find_station,
     load_station_inventory,
 )
 
@@ -36,7 +39,10 @@ __all__ = [
     "RemoteResult",
     "REMOTE_ACCESS_PROXY_VERSION_HEADER",
     "DeploymentEndpoint",
+    "DeploymentSettingsIdentity",
     "DeploymentStation",
+    "deployment_settings_identity",
+    "find_station",
     "authenticate_bearer",
     "authenticate_request",
     "ensure_client_env_file",

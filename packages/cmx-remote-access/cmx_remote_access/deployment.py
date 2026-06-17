@@ -41,6 +41,14 @@ class DeploymentStation:
     hardware: dict[str, Any]
 
 
+@dataclass(frozen=True, slots=True)
+class DeploymentSettingsIdentity:
+    """Host-specific identity values that deployed applications write to settings."""
+
+    station_id: str
+    computer_name: str
+
+
 def load_station_inventory(path: str | Path | None = None) -> list[DeploymentStation]:
     """Load the shared station deployment inventory."""
 
@@ -65,3 +73,29 @@ def load_station_inventory(path: str | Path | None = None) -> list[DeploymentSta
             )
         )
     return stations
+
+
+def find_station(identifier: str, path: str | Path | None = None) -> DeploymentStation:
+    """Find a station by station id, computer name, or endpoint host."""
+
+    normalized = identifier.upper().strip()
+    for station in load_station_inventory(path):
+        candidates = {
+            station.station_id.upper(),
+            station.computer_name.upper(),
+        }
+        if station.endpoint.host:
+            candidates.add(station.endpoint.host.upper())
+        if normalized in candidates:
+            return station
+    raise KeyError(f"No deployment station found for {identifier!r}")
+
+
+def deployment_settings_identity(identifier: str, path: str | Path | None = None) -> DeploymentSettingsIdentity:
+    """Return the identity values applications should write into host settings."""
+
+    station = find_station(identifier, path)
+    return DeploymentSettingsIdentity(
+        station_id=station.station_id,
+        computer_name=station.computer_name,
+    )

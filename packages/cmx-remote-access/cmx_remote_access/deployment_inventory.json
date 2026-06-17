@@ -84,11 +84,11 @@
       }
     },
     {
-      "station_id": "CM-GOT-RET-A",
-      "computer_name": "CM-GOT-RET-A",
+      "station_id": "CM-GOT-RET-B",
+      "computer_name": "CM-GOT-RET-B",
       "role": "ret",
       "site": "GOT",
-      "line": "A",
+      "line": "B",
       "endpoint": {
         "transport": "smb",
         "host": "10.0.245.179",
@@ -100,11 +100,11 @@
       }
     },
     {
-      "station_id": "CM-GOT-RET-B",
-      "computer_name": "CM-GOT-RET-B",
+      "station_id": "CM-GOT-RET-A",
+      "computer_name": "CM-GOT-RET-A",
       "role": "ret",
       "site": "GOT",
-      "line": "B",
+      "line": "A",
       "endpoint": {
         "transport": "smb",
         "host": "10.0.245.144",
