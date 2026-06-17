@@ -147,9 +147,18 @@
       "line": "A",
       "endpoint": {
         "transport": "smb",
-        "host": null
+        "host": "10.0.245.173",
+        "applications_share": "CellmaxApplications",
+        "desktop_share": "CellmaxDesktop"
       },
-      "hardware": {}
+      "hardware": {
+        "sbt_ret": true,
+        "apps": [
+          "sbt-ret-leakage-test",
+          "sbt-ret-connection-test",
+          "sbt-ret-qr-printer"
+        ]
+      }
     },
     {
       "station_id": "CMDEV-KIS-MEASA",

@@ -50,6 +50,19 @@ The **dashboard application** is **`cmx-dashboard`** at **`cellmaxtechnologies/c
 - `packages/cmx-remote-access/scripts/Initialize-CmxStation.ps1` — local elevated PowerShell script for standardizing a Windows station account, shares, optional SSH readiness, station metadata, and computer name.
 - `packages/pdm-api/` — PDM HTTP integration (existing).
 
+## Live Production Deployment Inventory
+
+Version `1.0.1` marks the station inventory as the live production deployment source for the standardized Cellmax Windows accounts, SMB shares, and station ids.
+
+## Current SBT Deployment Target
+
+`CM-GOT-SBT-A` is registered at `10.0.245.173` with the standard Cellmax SMB shares:
+
+- `CellmaxApplications` for `C:\Cellmax\Applications`
+- `CellmaxDesktop` for `C:\Users\Public\Desktop`
+
+The station is configured for the SBT RET leakage test, SBT RET connection test, and SBT RET QR printer applications.
+
 ## Paths
 
 | | |

@@ -13,6 +13,22 @@ def test_station_inventory_contains_ret_stations() -> None:
     assert stations["CM-GOT-RET-B"].endpoint.transport == "smb"
 
 
+def test_station_inventory_contains_sbt_station() -> None:
+    stations = {station.station_id: station for station in load_station_inventory()}
+
+    station = stations["CM-GOT-SBT-A"]
+    assert station.computer_name == "CM-GOT-SBT-A"
+    assert station.endpoint.host == "10.0.245.173"
+    assert station.endpoint.transport == "smb"
+    assert station.endpoint.applications_share == "CellmaxApplications"
+    assert station.endpoint.desktop_share == "CellmaxDesktop"
+    assert station.hardware["apps"] == [
+        "sbt-ret-leakage-test",
+        "sbt-ret-connection-test",
+        "sbt-ret-qr-printer",
+    ]
+
+
 def test_station_computer_names_fit_windows_limit() -> None:
     for station in load_station_inventory():
         assert len(station.computer_name) <= 15
@@ -33,3 +49,4 @@ def test_ret_b_host_resolves_to_ret_b_settings_identity() -> None:
 def test_find_station_accepts_host_and_names() -> None:
     assert find_station("10.0.245.144").station_id == "CM-GOT-RET-A"
     assert find_station("CM-GOT-RET-B").endpoint.host == "10.0.245.179"
+    assert find_station("10.0.245.173").station_id == "CM-GOT-SBT-A"
