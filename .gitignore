@@ -27,3 +27,79 @@ Thumbs.db
 # Generated dumps (optional local exports)
 project_content.txt
 *.log
+log*.txt
+logs_from_run/
+
+# --- CellMax shared hygiene ignores ---
+# Local secrets and machine-specific environment files. Keep examples tracked.
+.env
+.env.*
+!.env.example
+!.env.*.example
+!*.env.example
+
+# Python caches, test caches, coverage, and virtual environments.
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.nox/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+env/
+ENV/
+
+# JavaScript/frontend dependencies and build outputs.
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next/
+.nuxt/
+dist/
+build/
+out/
+
+# Logs and local runtime state.
+*.log
+log*.txt
+logs_from_run/
+logs/
+log/
+*.pid
+*.out
+*.err
+
+# Temporary/generated working files.
+reports.txt
+project_content*.txt
+temp_im_files/
+tmp/
+temp/
+.temp/
+scripts/temp/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+
+# OS and editor state.
+.DS_Store
+Thumbs.db
+.vs/
+.idea/
+.vscode/
+.cursor/
