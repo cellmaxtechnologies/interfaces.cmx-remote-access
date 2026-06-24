@@ -12,7 +12,7 @@ from importlib import resources
 from pathlib import Path
 from typing import Any, Literal
 
-StationRole = Literal["final", "pre", "ret", "pack", "sbt", "meas"]
+StationRole = Literal["final", "pre", "ret", "pack", "sbt", "meas", "test"]
 DeploymentTransport = Literal["smb", "ssh"]
 
 

@@ -44,18 +44,16 @@
       }
     },
     {
-      "station_id": "CM-GOT-PRE-A",
-      "computer_name": "CM-GOT-PRE-A",
+      "station_id": "CM-GOT-PRE-B",
+      "computer_name": "CM-GOT-PRE-B",
       "role": "pre",
       "site": "GOT",
-      "line": "A",
+      "line": "B",
       "endpoint": {
         "transport": "smb",
         "host": "10.0.245.171",
-        "applications_share": "C$",
-        "applications_subdir": "Cellmax\\Applications",
-        "desktop_share": "C$",
-        "desktop_subdir": "Users\\Public\\Desktop"
+        "applications_share": "CellmaxApplications",
+        "desktop_share": "CellmaxDesktop"
       },
       "hardware": {
         "pim": true,
@@ -64,11 +62,11 @@
       }
     },
     {
-      "station_id": "CM-GOT-PRE-B",
-      "computer_name": "CM-GOT-PRE-B",
+      "station_id": "CM-GOT-PRE-A",
+      "computer_name": "CM-GOT-PRE-A",
       "role": "pre",
       "site": "GOT",
-      "line": "B",
+      "line": "A",
       "endpoint": {
         "transport": "smb",
         "host": "10.0.245.200",
@@ -140,6 +138,30 @@
       "hardware": {}
     },
     {
+      "station_id": "CM-USA-RET-A",
+      "computer_name": "CM-USA-RET-A",
+      "role": "ret",
+      "site": "USA",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": null
+      },
+      "hardware": {}
+    },
+    {
+      "station_id": "CM-USA-PACK-A",
+      "computer_name": "CM-USA-PACK-A",
+      "role": "pack",
+      "site": "USA",
+      "line": "A",
+      "endpoint": {
+        "transport": "smb",
+        "host": null
+      },
+      "hardware": {}
+    },
+    {
       "station_id": "CM-GOT-SBT-A",
       "computer_name": "CM-GOT-SBT-A",
       "role": "sbt",
@@ -161,8 +183,8 @@
       }
     },
     {
-      "station_id": "CMDEV-KIS-MEASA",
-      "computer_name": "CMDEV-KIS-MEASA",
+      "station_id": "CM-KIS-MEAS-A",
+      "computer_name": "CM-KIS-MEAS-A",
       "role": "meas",
       "site": "KIS",
       "line": "A",
@@ -173,8 +195,8 @@
       "hardware": {}
     },
     {
-      "station_id": "CMDEV-KIS-MEASB",
-      "computer_name": "CMDEV-KIS-MEASB",
+      "station_id": "CM-KIS-MEAS-B",
+      "computer_name": "CM-KIS-MEAS-B",
       "role": "meas",
       "site": "KIS",
       "line": "B",
@@ -183,6 +205,25 @@
         "host": null
       },
       "hardware": {}
+    },
+    {
+      "station_id": "CM-KIS-TEST-A",
+      "computer_name": "CM-KIS-TEST-A",
+      "role": "test",
+      "site": "KIS",
+      "line": "A",
+      "endpoint": {
+        "transport": "ssh",
+        "host": null
+      },
+      "hardware": {
+        "ret": true,
+        "pim": true,
+        "apps": [
+          "ret-calibrate-config",
+          "pim-port-params-test"
+        ]
+      }
     }
   ]
 }

@@ -63,6 +63,10 @@ Version `1.0.1` marks the station inventory as the live production deployment so
 
 The station is configured for the SBT RET leakage test, SBT RET connection test, and SBT RET QR printer applications.
 
+## Current Placeholder Stations
+
+The inventory also reserves TBD deployment targets for `CM-USA-RET-A`, `CM-USA-PACK-A`, `CM-KIS-MEAS-A`, `CM-KIS-MEAS-B`, and `CM-KIS-TEST-A`. `CM-KIS-TEST-A` is planned to host both `ret-calibrate-config` and `pim-port-params-test`.
+
 ## Paths
 
 | | |

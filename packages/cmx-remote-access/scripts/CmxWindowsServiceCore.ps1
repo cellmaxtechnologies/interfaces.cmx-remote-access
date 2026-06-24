@@ -482,8 +482,12 @@ function Install-CmxPythonModuleNssmService {
     if ($RequireServiceAccount) {
         Write-CmxServiceStep "Configuring service account"
         $defaultServiceUsername = if ($ServiceUsername) { $ServiceUsername } else { Get-CmxLoggedInWindowsUsername }
-        $ServiceUsername = Prompt-CmxValue -Label "Windows service username" -CurrentValue $defaultServiceUsername -Required
-        $ServicePassword = Prompt-CmxValue -Label "Windows service password" -Required -Secret
+        if (-not $ServiceUsername) {
+            $ServiceUsername = Prompt-CmxValue -Label "Windows service username" -CurrentValue $defaultServiceUsername -Required
+        }
+        if (-not $ServicePassword) {
+            $ServicePassword = Prompt-CmxValue -Label "Windows service password" -Required -Secret
+        }
     }
 
     $logs = Join-Path $appDir 'logs'
