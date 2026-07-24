@@ -1,76 +1,63 @@
-# cmx-remote-access
+# CMX Remote Access
 
-Umbrella for **network-facing services** and **shared contracts** used across **development** and **production** stacks. The name avoids repeating “interface”: this repo already lives under **`interfaces/`**, and on GitHub it is **`interfaces.cmx-remote-access`**.
+Status: development
 
-It is the **remote access** layer behind **one company-wide view** of computers, **hardware**, **applications**, and **databases**.
+## Why
 
-## Two systems, same contracts
+This repo exists as the shared remote-access contract and service foundation for CellMax development and live systems, defining common authentication, health, command/result, installer, deployment, and station-inventory patterns across hardware, application, and database-facing services.
 
-| Repository | Path | Role |
-|------------|------|------|
-| **cmx-development-system** | `dev/apps/cmx-development-system` | Lab / R&D / engineering hosts; reuse production-style tests and flows on **lab equipment** and dev machines. |
-| **cmx-production-system** | `prod/apps/cmx-production-system` | Manufacturing execution, stations, traceability. |
+## Who
 
-Both:
+Owner: Developer. Contact: developer@cellmax.com.
 
-- Run largely via **Docker** (compose, overlays, agents).
-- Communicate with **remote computers** and whatever runs there (**apps** and/or **hardware gateways**).
-- Should consume the **same command/auth/health patterns** and **similar service shapes** defined here—not duplicate ad hoc APIs per environment.
+## Dependencies
 
-## Three pillars (per computer)
+Runtime and package dependencies:
 
-| Pillar | When to use |
-|--------|-------------|
-| **Hardware** | Direct device access (serial, VISA, station I/O); use **proxies** in CI/dev. |
-| **Applications** | **Bridge the app** when installs are heavy, tools are third-party, or the app already owns the hardware (COM, local HTTP, CLI). |
-| **Databases** | DB and related services (including Dockerized) that should appear next to hardware/apps for that host. |
+- Python `>=3.10, <3.14` for `packages/cmx-remote-access`.
+- Poetry.
+- FastAPI for shared HTTP service helpers.
+- Optional `httpx`, `uvicorn`, and `python-dotenv` for the development proxy extra.
+- PowerShell for shared Windows install, build, service, deployment, and station-initialization scripts.
+- Windows service tooling through the vendored `tools/nssm.exe` helper.
 
-## Python vs HTTP
+Operational dependencies:
 
-CRA-backed packages should keep the direct Python API and the HTTP transport separate:
+- CellMax workstation and station naming conventions.
+- Service tokens such as `SERVICE_API_TOKEN` and `ADMIN_API_TOKEN`.
+- Deployment inventory in `packages/cmx-remote-access/cmx_remote_access/deployment_inventory.json`.
+- Consumer packages such as Active Cell APIs and PDM API that dot-source or import the shared CRA helpers.
 
-- the package owns domain functions/classes with docstrings that explain the callable contract
-- `cmx-remote-access` owns bearer auth, health payloads, client remote-mode resolution, installer/build helpers, and shared service conventions
-- a package-level HTTP client mirrors the public Python operations when the caller is not on the machine that owns COM, hardware, or database access
-- READMEs describe what the package is, why it exists, how it is deployed, and where it is used; generated LaTeX documentation is built from the README
+## How
 
-This keeps docs from drifting into duplicated API reference while still making direct requests and Python function calls easy to relate.
+Install the core package from `packages/cmx-remote-access`:
 
-## One dashboard (company-wide)
+```powershell
+cd packages\cmx-remote-access
+poetry install
+```
 
-Monitoring is **not** “production-only.” The aim is **one tree-style dashboard** over **all relevant machines**: production floors, labs, and development—each node listing **applications**, **hardware**, and **databases** as appropriate.
+Run tests:
 
-The **dashboard application** is **`cmx-dashboard`** at **`cellmaxtechnologies/cmx-dashboard`**. Shared packages and contracts live here under **`interfaces/cmx-remote-access`**.
+```powershell
+poetry run pytest
+```
 
-## Layout
+Run the optional development HTTP proxy when needed:
 
-- `packages/cmx-remote-access/` — **Python library** (`cmx_remote_access`): shared **RemoteCommand/RemoteResult** contracts, **FastAPI bearer auth** (`SERVICE_API_TOKEN`, `ADMIN_API_TOKEN`, `AUTH_STRICT`), plus an **optional dev HTTP reverse proxy** (`poetry run cmx-remote-proxy`; see `packages/cmx-remote-access/README.md`).
-- `packages/cmx-remote-access/scripts/CmxInstallCore.ps1` — **shared Windows installer core**; each product ships an `install.ps1` that dot-sources it (see `packages/cmx-remote-access/docs/INSTALLATION.md`).
-- `packages/cmx-remote-access/cmx_remote_access/deployment_inventory.json` — shared station inventory. Station ids intentionally match Windows computer names, for example `CM-GOT-RET-A`.
-- `packages/cmx-remote-access/scripts/Initialize-CmxStation.ps1` — local elevated PowerShell script for standardizing a Windows station account, shares, optional SSH readiness, station metadata, and computer name.
-- `packages/pdm-api/` — PDM HTTP integration (existing).
+```powershell
+poetry install --extras proxy
+poetry run cmx-remote-proxy
+```
 
-## Live Production Deployment Inventory
+Use the shared PowerShell scripts from `packages/cmx-remote-access/scripts` when building or installing CRA-backed services. Product repositories should keep their product-specific install entrypoints thin and delegate shared behavior to these scripts.
 
-Version `1.0.1` marks the station inventory as the live production deployment source for the standardized Cellmax Windows accounts, SMB shares, and station ids.
+## What
 
-## Current SBT Deployment Target
+Cmx Remote Access is the umbrella for CellMax network-facing service contracts and shared remote-access tooling. It defines common patterns for services that expose hardware, applications, and databases across development, lab, and live systems.
 
-`CM-GOT-SBT-A` is registered at `10.0.245.173` with the standard Cellmax SMB shares:
+The repo contains the `cmx_remote_access` Python package with shared remote command/result contracts, authentication helpers, health payloads, client remote-mode resolution, release helpers, and a development proxy. It also contains shared Windows installer/build/service scripts and deployment inventory used by service packages.
 
-- `CellmaxApplications` for `C:\Cellmax\Applications`
-- `CellmaxDesktop` for `C:\Users\Public\Desktop`
+The intended architecture is one company-wide machine tree where hardware bridges, application bridges, and database services expose compatible health and command surfaces rather than each environment inventing its own API.
 
-The station is configured for the SBT RET leakage test, SBT RET connection test, and SBT RET QR printer applications.
-
-## Current Placeholder Stations
-
-The inventory also reserves TBD deployment targets for `CM-USA-RET-A`, `CM-USA-PACK-A`, `CM-KIS-MEAS-A`, `CM-KIS-MEAS-B`, and `CM-KIS-TEST-A`. `CM-KIS-TEST-A` is planned to host both `ret-calibrate-config` and `pim-port-params-test`.
-
-## Paths
-
-| | |
-|--|--|
-| **Workspace folder** | `cellmaxtechnologies/interfaces/cmx-remote-access` |
-| **GitHub** | `cellmaxtechnologies/interfaces.cmx-remote-access` |
-| **Dotted label** | `cellmaxtechnologies.interfaces.cmx-remote-access` |
+The repo also includes `packages/pdm-api`, an existing PDM integration package that uses the remote-access direction and should continue to align with the shared patterns here.
