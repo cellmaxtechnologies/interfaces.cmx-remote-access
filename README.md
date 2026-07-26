@@ -4,7 +4,9 @@ Status: development
 
 ## Why
 
-This repo exists as the shared remote-access contract and service foundation for CellMax development and live systems, defining common authentication, health, command/result, installer, deployment, and station-inventory patterns across hardware, application, and database-facing services.
+This repo is the shared remote-access contract and service foundation for CellMax development and live systems.
+
+It defines common authentication, health, command/result, installer, deployment, and station-inventory patterns for hardware, application, and database-facing services.
 
 ## Who
 
@@ -50,13 +52,19 @@ poetry install --extras proxy
 poetry run cmx-remote-proxy
 ```
 
-Use the shared PowerShell scripts from `packages/cmx-remote-access/scripts` when building or installing CRA-backed services. Product repositories should keep their product-specific install entrypoints thin and delegate shared behavior to these scripts.
+Use the shared PowerShell scripts from `packages/cmx-remote-access/scripts` when building or installing CRA-backed services.
+
+Product repositories should keep product-specific install entrypoints thin and delegate shared behavior to these scripts.
 
 ## What
 
-Cmx Remote Access is the umbrella for CellMax network-facing service contracts and shared remote-access tooling. It defines common patterns for services that expose hardware, applications, and databases across development, lab, and live systems.
+Cmx Remote Access is the umbrella for CellMax network-facing service contracts and shared remote-access tooling.
 
-The repo contains the `cmx_remote_access` Python package with shared remote command/result contracts, authentication helpers, health payloads, client remote-mode resolution, release helpers, and a development proxy. It also contains shared Windows installer/build/service scripts and deployment inventory used by service packages.
+It defines common service patterns for hardware, applications, and databases across development, lab, and live systems.
+
+The `cmx_remote_access` Python package provides remote command/result contracts, authentication helpers, health payloads, client remote-mode resolution, release helpers, and a development proxy.
+
+The repo also contains shared Windows installer, build, and service scripts plus deployment inventory used by service packages.
 
 The intended architecture is one company-wide machine tree where hardware bridges, application bridges, and database services expose compatible health and command surfaces rather than each environment inventing its own API.
 
