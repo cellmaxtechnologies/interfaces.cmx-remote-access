@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.0.2 | 2026-07-26 | Widen tested FastAPI compatibility through 0.140 and refresh the dependency lock. |
 | 0.3.15 | 2026-06-01 | Prefer routed physical LAN IPv4 addresses when installers print client URLs. |
 | 0.3.14 | 2026-05-29 | Replace existing NSSM services by removing and recreating them instead of editing brittle service parameters in place. |
 | 0.3.13 | 2026-05-29 | Clear empty NSSM AppParameters during service updates without failing reinstall flows. |
