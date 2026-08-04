@@ -30,6 +30,17 @@ from cmx_remote_access.deployment import (
     find_station,
     load_station_inventory,
 )
+from cmx_remote_access.deployment_manifest import (
+    ArtifactHash,
+    ArtifactSpec,
+    ContractValidationError,
+    DeploymentManifest,
+    DeploymentResult,
+    HealthCheckSpec,
+    PackageSpec,
+    ServiceSpec,
+    hash_artifact,
+)
 
 __all__ = [
     "AuthContext",
@@ -41,6 +52,14 @@ __all__ = [
     "DeploymentEndpoint",
     "DeploymentSettingsIdentity",
     "DeploymentStation",
+    "DeploymentManifest",
+    "DeploymentResult",
+    "ArtifactHash",
+    "ArtifactSpec",
+    "ContractValidationError",
+    "HealthCheckSpec",
+    "PackageSpec",
+    "ServiceSpec",
     "deployment_settings_identity",
     "find_station",
     "authenticate_bearer",
@@ -53,6 +72,7 @@ __all__ = [
     "resolve_live_service_test_config",
     "load_station_inventory",
     "health_payload",
+    "hash_artifact",
     "load_remote_access_settings",
     "require_roles",
     "token_role_map_from_env",

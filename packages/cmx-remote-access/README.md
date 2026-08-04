@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.1.0 | 2026-08-04 | Add transport-neutral unattended deployment contracts, a station-side deployment agent, and an SMB publisher with hash validation, health gating, audit results, and rollback. |
 | 1.0.2 | 2026-07-26 | Widen tested FastAPI compatibility through 0.140 and refresh the dependency lock. |
 | 0.3.15 | 2026-06-01 | Prefer routed physical LAN IPv4 addresses when installers print client URLs. |
 | 0.3.14 | 2026-05-29 | Replace existing NSSM services by removing and recreating them instead of editing brittle service parameters in place. |
@@ -53,6 +54,60 @@ service_only = require_roles(settings, frozenset({"service", "admin"}))
 - Child CRA repos should keep `install.ps1` and `build.ps1` thin: pass only product-specific prompts, spec names, copied files, and sibling dependency repos.
 
 If shared install/build behavior changes, change CRA once, then update child repos. Child repos should not copy generic CRA logic.
+
+## Unattended service deployment
+
+CRA's unattended deployment protocol separates transport from privileged installation:
+
+- `New-CmxDeploymentAgentBundle.ps1` builds the versioned portable bootstrap ZIP used for the one-time station setup.
+- `Publish-CmxServiceRelease.ps1` publishes a versioned bundle and strict manifest to a station inbox over SMB. It writes the ready marker last, waits for the matching result, and verifies the service's reported ID and version.
+- `Install-CmxDeploymentAgent.ps1` is a one-time elevated station bootstrap. It creates station-local inbox, result, release, and lock roots and registers the deployment runner.
+- `Run-CmxDeploymentAgent.ps1` claims ready deployments into a SYSTEM/Admin-only queue, then processes them locally. It validates the manifest and protected artifact hash, enforces station-local package/service/health/entrypoint profiles, preserves the existing Windows service identity and ProgramData configuration, switches the existing NSSM service to a versioned release, health-checks it, and health-checks any rollback.
+- `CmxDeploymentAgentCore.ps1` contains the shared fail-closed validation, locking, release, health, audit-result, and rollback behavior.
+
+Service-account passwords, API tokens, UNC credentials, and `.env` files remain on the station. They must never be included in deployment manifests, bundles, launcher arguments, or SMB staging directories. The agent upgrades existing services only; first installation and agent bootstrap still require one elevated station action.
+
+SMB is the first transport. A later SSH/SFTP publisher should stage the same artifact and manifest and trigger the same station agent rather than duplicate installation logic.
+
+### One-time station bootstrap
+
+Copy the deployment-agent ZIP to the station, open an elevated Windows PowerShell console there, and run:
+
+```powershell
+Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.0.zip -DestinationPath .\cmx-deployment-agent-1.1.0
+Set-Location .\cmx-deployment-agent-1.1.0
+.\Install-CmxDeploymentAgent.ps1 -DeploymentPrincipal 'STATION\cmx-deployer'
+```
+
+Replace `STATION\cmx-deployer` with the dedicated Windows account that the publishing computer will use over SMB. Broad principals such as Everyone, Authenticated Users, Users, and Guests are rejected. The bootstrap discovers NSSM from an existing Windows service when there is one unique NSSM path; otherwise pass `-NssmExe 'C:\path\to\nssm.exe'`.
+
+The bootstrap creates the hidden `CellmaxDeploy$` share and a LocalSystem startup task. The deployment principal can modify only `inbox` and read `results`; agent scripts, the protected claim queue, release files, locks, and service credentials remain unavailable through the share. A prepared release grants the unchanged service identity read/execute access only. The default station-local allowlist pins both known services: PP API on port 8765 and AC API on port 8766. A manifest cannot redirect the agent to another Windows service or executable path.
+
+### Publish PP API 0.3.23 over SMB
+
+From the publishing computer, use a credential prompt so the SMB password is not placed in shell history:
+
+```powershell
+$stationCredential = Get-Credential 'STATION\cmx-deployer'
+
+.\Publish-CmxServiceRelease.ps1 `
+    -ComputerName '192.168.20.25' `
+    -ShareName 'CellmaxDeploy$' `
+    -PackageName 'active-cell-pp-api' `
+    -PackageVersion '0.3.23' `
+    -SourceSha '7cdc281fb72566480f63b7c6f452c81bd86c99d2' `
+    -ArtifactPath 'C:\path\to\active-cell-pp-api-server-0.3.23.zip' `
+    -ServiceName 'CellMaxActiveCellPpApi' `
+    -ExecutablePath 'active-cell-pp-api-server.exe' `
+    -HealthUrl 'http://127.0.0.1:8765/health' `
+    -HealthServiceId 'active-cell-pp-api' `
+    -HealthExpectedVersion '0.3.23' `
+    -Credential $stationCredential
+```
+
+Success means all three proofs agree: the staged artifact SHA-256, the station's atomic result for that deployment ID, and the independently queried remote health `service_id` plus version. The station keeps a restricted transaction journal and release marker so an interrupted deployment can resume with its original rollback target. A failed rollout records explicit old-service rollback health evidence when rollback succeeds; rollback failure is included in the error.
+
+Protocol v1 trusts the restricted SMB deployment principal as the release authority for only the station-local allowlisted PP/AC services; detached manifest signatures and SSH/SFTP transport are intentionally later additions. It upgrades an existing NSSM service only and never performs a first service installation.
 
 ## Dev HTTP proxy (integrated, optional extra)
 
