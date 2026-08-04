@@ -316,12 +316,14 @@ def test_release_read_execute_acl_grant_runs_in_windows_powershell(tmp_path: Pat
     (release / "server.exe").write_bytes(b"test")
     command = (
         f". {ps_quote(CORE)};"
-        "$account=\"$env:USERDOMAIN\\$env:USERNAME\";"
+        "$localName=(Get-CimInstance Win32_UserAccount -Filter 'LocalAccount=True' | Select-Object -First 1).Name;"
+        "$account=\".\\$localName\";"
         f"Grant-CmxDeploymentReleaseReadExecute {ps_quote(release)} $account"
     )
 
     result = run_pwsh(command)
     assert result.returncode == 0, result.stderr + result.stdout
+    assert "^\\.\\\\(.+)$" in CORE.read_text(encoding="utf-8")
 
 
 def test_agent_persists_restart_safe_release_and_rollback_evidence() -> None:
@@ -356,7 +358,7 @@ def test_deployment_agent_bundle_contains_bootstrap_and_publisher(tmp_path: Path
         check=False,
     )
     assert result.returncode == 0, result.stderr + result.stdout
-    bundles = list(tmp_path.glob("cmx-deployment-agent-1.1.0.zip"))
+    bundles = list(tmp_path.glob("cmx-deployment-agent-1.1.1.zip"))
     assert len(bundles) == 1
     with zipfile.ZipFile(bundles[0]) as bundle:
         assert set(bundle.namelist()) == {
@@ -377,7 +379,7 @@ def test_deployment_agent_bundle_default_output_works_in_windows_powershell() ->
         check=False,
     )
     assert result.returncode == 0, result.stderr + result.stdout
-    assert (ROOT / "dist" / "cmx-deployment-agent-1.1.0.zip").is_file()
+    assert (ROOT / "dist" / "cmx-deployment-agent-1.1.1.zip").is_file()
 
 
 def test_result_shape_and_exact_health_identity_are_pinned() -> None:

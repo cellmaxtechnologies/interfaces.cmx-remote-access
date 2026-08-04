@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.1.1 | 2026-08-04 | Normalize NSSM local service identities such as `.\ittab` before granting read/execute access to prepared releases. |
 | 1.1.0 | 2026-08-04 | Add transport-neutral unattended deployment contracts, a station-side deployment agent, and an SMB publisher with hash validation, health gating, audit results, and rollback. |
 | 1.0.2 | 2026-07-26 | Widen tested FastAPI compatibility through 0.140 and refresh the dependency lock. |
 | 0.3.15 | 2026-06-01 | Prefer routed physical LAN IPv4 addresses when installers print client URLs. |
@@ -74,8 +75,8 @@ SMB is the first transport. A later SSH/SFTP publisher should stage the same art
 Copy the deployment-agent ZIP to the station, open an elevated Windows PowerShell console there, and run:
 
 ```powershell
-Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.0.zip -DestinationPath .\cmx-deployment-agent-1.1.0
-Set-Location .\cmx-deployment-agent-1.1.0
+Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.1.zip -DestinationPath .\cmx-deployment-agent-1.1.1
+Set-Location .\cmx-deployment-agent-1.1.1
 .\Install-CmxDeploymentAgent.ps1 -DeploymentPrincipal 'STATION\cmx-deployer'
 ```
 

@@ -322,14 +322,19 @@ function Grant-CmxDeploymentReleaseReadExecute {
         [Parameter(Mandatory)][string]$ServiceAccount
     )
     if (-not (Test-Path -LiteralPath $ReleasePath -PathType Container)) { throw 'Prepared release directory is missing.' }
-    $aclAccount = switch ($ServiceAccount) {
+    $normalizedServiceAccount = if ($ServiceAccount -match '^\.\\(.+)$') {
+        "$env:COMPUTERNAME\$($Matches[1])"
+    } else {
+        $ServiceAccount
+    }
+    $aclAccount = switch ($normalizedServiceAccount) {
         'LocalSystem' { '*S-1-5-18' }
         'NT AUTHORITY\SYSTEM' { '*S-1-5-18' }
         'NT AUTHORITY\LocalService' { '*S-1-5-19' }
         'NT AUTHORITY\LOCAL SERVICE' { '*S-1-5-19' }
         'NT AUTHORITY\NetworkService' { '*S-1-5-20' }
         'NT AUTHORITY\NETWORK SERVICE' { '*S-1-5-20' }
-        default { $ServiceAccount }
+        default { $normalizedServiceAccount }
     }
     & icacls.exe $ReleasePath '/grant:r' "$aclAccount`:(OI)(CI)RX" '/T' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Could not grant release read/execute access to service identity '$ServiceAccount'." }

@@ -12,9 +12,9 @@ def test_release_metadata_and_framework_lock_are_synchronized() -> None:
         lock = tomllib.load(stream)
 
     poetry = project["tool"]["poetry"]
-    assert poetry["version"] == "1.1.0"
+    assert poetry["version"] == "1.1.1"
     assert poetry["dependencies"]["fastapi"] == ">=0.115,<0.141"
-    assert "| 1.1.0 |" in (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
+    assert "| 1.1.1 |" in (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
 
     locked_versions = {package["name"]: package["version"] for package in lock["package"]}
     assert locked_versions["fastapi"] == "0.140.0"
