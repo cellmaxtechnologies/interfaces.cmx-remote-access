@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.1.2 | 2026-08-04 | Add the DESKTOP-BG8O674 PP API deployment runbook and restart an existing deployment-agent runner during bootstrap upgrades. |
 | 1.1.1 | 2026-08-04 | Normalize NSSM local service identities such as `.\ittab` before granting read/execute access to prepared releases. |
 | 1.1.0 | 2026-08-04 | Add transport-neutral unattended deployment contracts, a station-side deployment agent, and an SMB publisher with hash validation, health gating, audit results, and rollback. |
 | 1.0.2 | 2026-07-26 | Widen tested FastAPI compatibility through 0.140 and refresh the dependency lock. |
@@ -68,6 +69,8 @@ CRA's unattended deployment protocol separates transport from privileged install
 
 Service-account passwords, API tokens, UNC credentials, and `.env` files remain on the station. They must never be included in deployment manifests, bundles, launcher arguments, or SMB staging directories. The agent upgrades existing services only; first installation and agent bootstrap still require one elevated station action.
 
+The machine-specific PP API procedure for the first deployed host is [DESKTOP-BG8O674 active-cell-pp-api](docs/stations/DESKTOP-BG8O674-active-cell-pp-api.md). It records the station topology, commands, secret boundary, verification gates, retry rules, and SSH migration seam without storing credentials.
+
 SMB is the first transport. A later SSH/SFTP publisher should stage the same artifact and manifest and trigger the same station agent rather than duplicate installation logic.
 
 ### One-time station bootstrap
@@ -75,8 +78,8 @@ SMB is the first transport. A later SSH/SFTP publisher should stage the same art
 Copy the deployment-agent ZIP to the station, open an elevated Windows PowerShell console there, and run:
 
 ```powershell
-Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.1.zip -DestinationPath .\cmx-deployment-agent-1.1.1
-Set-Location .\cmx-deployment-agent-1.1.1
+Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.2.zip -DestinationPath .\cmx-deployment-agent-1.1.2
+Set-Location .\cmx-deployment-agent-1.1.2
 .\Install-CmxDeploymentAgent.ps1 -DeploymentPrincipal 'STATION\cmx-deployer'
 ```
 

@@ -310,6 +310,18 @@ def test_agent_preserves_service_identity_and_never_accepts_secrets() -> None:
     assert 'Move-Item -LiteralPath $allowlistTemp -Destination $allowlistPath -Force' in installer
 
 
+def test_installer_restarts_existing_agent_before_registering_upgrade() -> None:
+    installer = (SCRIPTS / "Install-CmxDeploymentAgent.ps1").read_text(encoding="utf-8")
+
+    stop = installer.index("Stop-ScheduledTask -TaskName $TaskName")
+    register = installer.index("Register-ScheduledTask -TaskName $TaskName")
+    start = installer.index("Start-ScheduledTask -TaskName $TaskName")
+
+    assert "$existingTask.State -eq 'Running'" in installer
+    assert "did not stop during upgrade" in installer
+    assert stop < register < start
+
+
 def test_release_read_execute_acl_grant_runs_in_windows_powershell(tmp_path: Path) -> None:
     release = tmp_path / "release"
     release.mkdir()
@@ -358,7 +370,7 @@ def test_deployment_agent_bundle_contains_bootstrap_and_publisher(tmp_path: Path
         check=False,
     )
     assert result.returncode == 0, result.stderr + result.stdout
-    bundles = list(tmp_path.glob("cmx-deployment-agent-1.1.1.zip"))
+    bundles = list(tmp_path.glob("cmx-deployment-agent-1.1.2.zip"))
     assert len(bundles) == 1
     with zipfile.ZipFile(bundles[0]) as bundle:
         assert set(bundle.namelist()) == {
@@ -379,7 +391,7 @@ def test_deployment_agent_bundle_default_output_works_in_windows_powershell() ->
         check=False,
     )
     assert result.returncode == 0, result.stderr + result.stdout
-    assert (ROOT / "dist" / "cmx-deployment-agent-1.1.1.zip").is_file()
+    assert (ROOT / "dist" / "cmx-deployment-agent-1.1.2.zip").is_file()
 
 
 def test_result_shape_and_exact_health_identity_are_pinned() -> None:
