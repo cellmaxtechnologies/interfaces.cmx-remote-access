@@ -73,8 +73,9 @@ $ErrorActionPreference = "Stop"
 function Get-CmxFileSha256 {
     param([Parameter(Mandatory = $true)][string] $Path)
 
+    $fileSystemPath = (Get-Item -LiteralPath $Path -ErrorAction Stop).FullName
     $algorithm = [Security.Cryptography.SHA256]::Create()
-    $stream = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    $stream = [IO.File]::Open($fileSystemPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
     try {
         return (($algorithm.ComputeHash($stream) | ForEach-Object { $_.ToString("x2") }) -join "")
     } finally {

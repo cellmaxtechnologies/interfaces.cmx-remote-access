@@ -115,6 +115,7 @@ def test_publisher_emits_exact_v1_manifest_shape_and_artifact_proof() -> None:
 
     assert "Get-CmxFileSha256 $artifact.FullName" in script
     assert "Get-CmxFileSha256 $artifactPartial" in script
+    assert "(Get-Item -LiteralPath $Path -ErrorAction Stop).FullName" in script
     assert "[Security.Cryptography.SHA256]::Create()" in script
     assert "$stagedArtifact.Length -ne $artifact.Length -or $stagedHash -ne $artifactHash" in script
 

@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.1.3 | 2026-08-14 | Resolve credential-backed PowerShell drive paths to UNC filesystem paths before hashing staged deployment artifacts. |
 | 1.1.2 | 2026-08-04 | Add the DESKTOP-BG8O674 PP API deployment runbook and restart an existing deployment-agent runner during bootstrap upgrades. |
 | 1.1.1 | 2026-08-04 | Normalize NSSM local service identities such as `.\ittab` before granting read/execute access to prepared releases. |
 | 1.1.0 | 2026-08-04 | Add transport-neutral unattended deployment contracts, a station-side deployment agent, and an SMB publisher with hash validation, health gating, audit results, and rollback. |
@@ -78,8 +79,8 @@ SMB is the first transport. A later SSH/SFTP publisher should stage the same art
 Copy the deployment-agent ZIP to the station, open an elevated Windows PowerShell console there, and run:
 
 ```powershell
-Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.2.zip -DestinationPath .\cmx-deployment-agent-1.1.2
-Set-Location .\cmx-deployment-agent-1.1.2
+Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.3.zip -DestinationPath .\cmx-deployment-agent-1.1.3
+Set-Location .\cmx-deployment-agent-1.1.3
 .\Install-CmxDeploymentAgent.ps1 -DeploymentPrincipal 'STATION\cmx-deployer'
 ```
 
