@@ -238,7 +238,9 @@ try {
     if ($Credential) {
         $driveName = "CMX" + [guid]::NewGuid().ToString("N").Substring(0, 8)
         New-PSDrive -Name $driveName -PSProvider FileSystem -Root $shareRoot -Credential $Credential -Scope Script | Out-Null
-        $shareRoot = "${driveName}:\"
+        # Keep the authenticated drive mounted, but stage through the UNC path.
+        # Windows PowerShell 5 can recursively expand provider-qualified paths
+        # rooted at a credential-backed temporary drive.
     }
 
     $inboxRoot = Join-Path $shareRoot "inbox"

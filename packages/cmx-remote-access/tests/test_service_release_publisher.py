@@ -152,6 +152,7 @@ def test_publisher_has_no_service_secret_or_remote_install_surface() -> None:
 
     assert "[pscredential] $Credential" in script
     assert "New-PSDrive" in script
+    assert '$shareRoot = "${driveName}:\\"' not in script
     assert "Remove-PSDrive" in script
     assert script.index("try {") < script.index("finally {") < script.index("Remove-PSDrive")
 
