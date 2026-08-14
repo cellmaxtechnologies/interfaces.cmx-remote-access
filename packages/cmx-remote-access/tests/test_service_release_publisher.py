@@ -141,7 +141,9 @@ def test_publisher_can_retry_same_immutable_deployment_without_deleting_audit_re
 
     assert "[string] $DeploymentId = ''" in script
     assert '$DeploymentId = [guid]::NewGuid().ToString("D")' in script
-    assert '$candidateUpdatedAt -ge $createdAtValue' in script
+    assert '$candidateUpdatedAt -ge $requestStartedAt' in script
+    assert "Existing retry artifact size or SHA-256" in script
+    assert "Existing retry manifest section" in script
     assert 'Remove-Item -LiteralPath $resultPath' not in script
 
 

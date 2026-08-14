@@ -207,7 +207,8 @@ if ($artifact.Extension -cne ".zip") {
 }
 
 $artifactHash = Get-CmxFileSha256 $artifact.FullName
-if ([string]::IsNullOrWhiteSpace($DeploymentId)) {
+$isRetry = -not [string]::IsNullOrWhiteSpace($DeploymentId)
+if (-not $isRetry) {
     $DeploymentId = [guid]::NewGuid().ToString("D")
 }
 Assert-CmxSafeLeaf -Value $DeploymentId -Label "DeploymentId"
@@ -215,8 +216,8 @@ if ($DeploymentId -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
     throw "DeploymentId must be a safe identifier of at most 64 characters."
 }
 $deploymentId = $DeploymentId
-$createdAtValue = [DateTimeOffset]::UtcNow
-$createdAt = $createdAtValue.ToString("o")
+$requestStartedAt = [DateTimeOffset]::UtcNow
+$createdAt = $requestStartedAt.ToString("o")
 
 $manifest = [ordered]@{
     schemaVersion = 1
@@ -260,25 +261,51 @@ try {
 
     $deploymentRoot = Join-Path $inboxRoot $deploymentId
     if (Test-Path -LiteralPath $deploymentRoot) {
-        throw "Deployment directory already exists: $deploymentRoot"
-    }
-    New-Item -ItemType Directory -Path $deploymentRoot | Out-Null
+        if (-not $isRetry) { throw "Deployment directory already exists: $deploymentRoot" }
+        $existingManifestPath = Join-Path $deploymentRoot 'manifest.json'
+        $existingManifest = Get-Content -LiteralPath $existingManifestPath -Raw | ConvertFrom-Json
+        Assert-CmxExactPropertyNames -Object $existingManifest -Names @(
+            'schemaVersion','deploymentId','package','artifact','service','health','createdAt'
+        ) -Context 'Existing retry manifest'
+        if ([int]$existingManifest.schemaVersion -ne 1 -or [string]$existingManifest.deploymentId -cne $deploymentId) {
+            throw 'Existing retry manifest identity does not match the requested deployment.'
+        }
+        foreach ($section in @('package','artifact','service','health')) {
+            $existingJson = $existingManifest.$section | ConvertTo-Json -Depth 8 -Compress
+            $requestedJson = $manifest.$section | ConvertTo-Json -Depth 8 -Compress
+            if ($existingJson -cne $requestedJson) {
+                throw "Existing retry manifest section '$section' does not match the request."
+            }
+        }
+        $existingArtifact = Join-Path $deploymentRoot $artifact.Name
+        $existingItem = Get-Item -LiteralPath $existingArtifact -ErrorAction Stop
+        if ($existingItem.Length -ne $artifact.Length -or (Get-CmxFileSha256 $existingArtifact) -ne $artifactHash) {
+            throw 'Existing retry artifact size or SHA-256 does not match the local artifact.'
+        }
+        foreach ($activeMarker in @('ready','processing')) {
+            if (Test-Path -LiteralPath (Join-Path $deploymentRoot $activeMarker)) {
+                throw "Existing retry request is already active: $activeMarker"
+            }
+        }
+    } else {
+        New-Item -ItemType Directory -Path $deploymentRoot | Out-Null
 
-    $artifactPartial = Join-Path $deploymentRoot ($artifact.Name + ".partial")
-    $artifactPublished = Join-Path $deploymentRoot $artifact.Name
-    Copy-Item -LiteralPath $artifact.FullName -Destination $artifactPartial
-    $stagedArtifact = Get-Item -LiteralPath $artifactPartial
-    $stagedHash = Get-CmxFileSha256 $artifactPartial
-    if ($stagedArtifact.Length -ne $artifact.Length -or $stagedHash -ne $artifactHash) {
-        throw "Staged artifact size or SHA-256 does not match the local artifact."
-    }
-    Move-Item -LiteralPath $artifactPartial -Destination $artifactPublished
+        $artifactPartial = Join-Path $deploymentRoot ($artifact.Name + ".partial")
+        $artifactPublished = Join-Path $deploymentRoot $artifact.Name
+        Copy-Item -LiteralPath $artifact.FullName -Destination $artifactPartial
+        $stagedArtifact = Get-Item -LiteralPath $artifactPartial
+        $stagedHash = Get-CmxFileSha256 $artifactPartial
+        if ($stagedArtifact.Length -ne $artifact.Length -or $stagedHash -ne $artifactHash) {
+            throw "Staged artifact size or SHA-256 does not match the local artifact."
+        }
+        Move-Item -LiteralPath $artifactPartial -Destination $artifactPublished
 
-    $manifestPartial = Join-Path $deploymentRoot "manifest.json.partial"
-    $manifestPublished = Join-Path $deploymentRoot "manifest.json"
-    $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $manifestPartial -Encoding UTF8
-    Get-Content -LiteralPath $manifestPartial -Raw | ConvertFrom-Json | Out-Null
-    Move-Item -LiteralPath $manifestPartial -Destination $manifestPublished
+        $manifestPartial = Join-Path $deploymentRoot "manifest.json.partial"
+        $manifestPublished = Join-Path $deploymentRoot "manifest.json"
+        $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $manifestPartial -Encoding UTF8
+        Get-Content -LiteralPath $manifestPartial -Raw | ConvertFrom-Json | Out-Null
+        Move-Item -LiteralPath $manifestPartial -Destination $manifestPublished
+    }
 
     # The agent's only activation signal. It must remain the final published file.
     $readyPartial = Join-Path $deploymentRoot "ready.partial"
@@ -294,7 +321,7 @@ try {
             $candidate = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
             $candidateUpdatedAt = [DateTimeOffset]::MinValue
             if ([DateTimeOffset]::TryParse([string]$candidate.updatedAt, [ref]$candidateUpdatedAt) -and
-                $candidateUpdatedAt -ge $createdAtValue) {
+                $candidateUpdatedAt -ge $requestStartedAt) {
                 $result = $candidate
                 break
             }

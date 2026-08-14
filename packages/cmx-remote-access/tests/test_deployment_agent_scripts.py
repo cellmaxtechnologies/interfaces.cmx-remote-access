@@ -370,7 +370,7 @@ def test_deployment_agent_bundle_contains_bootstrap_and_publisher(tmp_path: Path
         check=False,
     )
     assert result.returncode == 0, result.stderr + result.stdout
-    bundles = list(tmp_path.glob("cmx-deployment-agent-1.1.5.zip"))
+    bundles = list(tmp_path.glob("cmx-deployment-agent-1.1.6.zip"))
     assert len(bundles) == 1
     with zipfile.ZipFile(bundles[0]) as bundle:
         assert set(bundle.namelist()) == {
@@ -391,7 +391,7 @@ def test_deployment_agent_bundle_default_output_works_in_windows_powershell() ->
         check=False,
     )
     assert result.returncode == 0, result.stderr + result.stdout
-    assert (ROOT / "dist" / "cmx-deployment-agent-1.1.5.zip").is_file()
+    assert (ROOT / "dist" / "cmx-deployment-agent-1.1.6.zip").is_file()
 
 
 def test_result_shape_and_exact_health_identity_are_pinned() -> None:
