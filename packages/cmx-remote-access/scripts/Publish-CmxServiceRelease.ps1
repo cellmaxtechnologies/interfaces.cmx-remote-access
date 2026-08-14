@@ -49,6 +49,9 @@ param(
     [string] $HealthExpectedVersion,
 
     [Parameter(Mandatory = $false)]
+    [string] $DeploymentId = '',
+
+    [Parameter(Mandatory = $false)]
     [pscredential] $Credential,
 
     [Parameter(Mandatory = $false)]
@@ -204,8 +207,16 @@ if ($artifact.Extension -cne ".zip") {
 }
 
 $artifactHash = Get-CmxFileSha256 $artifact.FullName
-$deploymentId = [guid]::NewGuid().ToString("D")
-$createdAt = [DateTime]::UtcNow.ToString("o")
+if ([string]::IsNullOrWhiteSpace($DeploymentId)) {
+    $DeploymentId = [guid]::NewGuid().ToString("D")
+}
+Assert-CmxSafeLeaf -Value $DeploymentId -Label "DeploymentId"
+if ($DeploymentId -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
+    throw "DeploymentId must be a safe identifier of at most 64 characters."
+}
+$deploymentId = $DeploymentId
+$createdAtValue = [DateTimeOffset]::UtcNow
+$createdAt = $createdAtValue.ToString("o")
 
 $manifest = [ordered]@{
     schemaVersion = 1
@@ -277,14 +288,22 @@ try {
 
     $resultPath = Join-Path $resultsRoot ($deploymentId + ".json")
     $resultDeadline = [DateTime]::UtcNow.AddSeconds($ResultTimeoutSeconds)
-    while (-not (Test-Path -LiteralPath $resultPath)) {
+    $result = $null
+    while ($null -eq $result) {
+        if (Test-Path -LiteralPath $resultPath) {
+            $candidate = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+            $candidateUpdatedAt = [DateTimeOffset]::MinValue
+            if ([DateTimeOffset]::TryParse([string]$candidate.updatedAt, [ref]$candidateUpdatedAt) -and
+                $candidateUpdatedAt -ge $createdAtValue) {
+                $result = $candidate
+                break
+            }
+        }
         if ([DateTime]::UtcNow -ge $resultDeadline) {
             throw "Timed out waiting for deployment result $deploymentId after $ResultTimeoutSeconds seconds."
         }
         Start-Sleep -Seconds $PollIntervalSeconds
     }
-
-    $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
     Assert-CmxExactPropertyNames -Object $result -Names @(
         "schemaVersion", "deploymentId", "status", "updatedAt", "previousRelease",
         "newRelease", "artifactSha256", "health", "error"

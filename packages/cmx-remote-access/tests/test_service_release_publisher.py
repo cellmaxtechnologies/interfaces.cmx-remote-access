@@ -127,13 +127,22 @@ def test_publisher_stages_partial_files_and_publishes_ready_last() -> None:
     manifest_publish = script.index("Move-Item -LiteralPath $manifestPartial")
     ready_create = script.index("[System.IO.File]::WriteAllBytes($readyPartial")
     ready_publish = script.index("Move-Item -LiteralPath $readyPartial")
-    result_wait = script.index("while (-not (Test-Path -LiteralPath $resultPath))")
+    result_wait = script.index("while ($null -eq $result)")
 
     assert artifact_publish < manifest_publish < ready_create < ready_publish < result_wait
     assert 'Join-Path $deploymentRoot ($artifact.Name + ".partial")' in script
     assert 'Join-Path $deploymentRoot "manifest.json.partial"' in script
     assert 'Join-Path $deploymentRoot "ready.partial"' in script
     assert '[System.IO.File]::WriteAllBytes($readyPartial, [byte[]]@())' in script
+
+
+def test_publisher_can_retry_same_immutable_deployment_without_deleting_audit_result() -> None:
+    script = _script()
+
+    assert "[string] $DeploymentId = ''" in script
+    assert '$DeploymentId = [guid]::NewGuid().ToString("D")' in script
+    assert '$candidateUpdatedAt -ge $createdAtValue' in script
+    assert 'Remove-Item -LiteralPath $resultPath' not in script
 
 
 def test_publisher_has_no_service_secret_or_remote_install_surface() -> None:

@@ -4,6 +4,7 @@
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.1.5 | 2026-08-14 | Allow exact immutable deployment-ID retries and wait for a fresh station result without deleting prior audit evidence. |
 | 1.1.4 | 2026-08-14 | Keep credential-backed SMB connections mounted while staging through canonical UNC paths to avoid Windows PowerShell provider path recursion. |
 | 1.1.3 | 2026-08-14 | Resolve credential-backed PowerShell drive paths to UNC filesystem paths before hashing staged deployment artifacts. |
 | 1.1.2 | 2026-08-04 | Add the DESKTOP-BG8O674 PP API deployment runbook and restart an existing deployment-agent runner during bootstrap upgrades. |
@@ -80,8 +81,8 @@ SMB is the first transport. A later SSH/SFTP publisher should stage the same art
 Copy the deployment-agent ZIP to the station, open an elevated Windows PowerShell console there, and run:
 
 ```powershell
-Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.4.zip -DestinationPath .\cmx-deployment-agent-1.1.4
-Set-Location .\cmx-deployment-agent-1.1.4
+Expand-Archive -LiteralPath .\cmx-deployment-agent-1.1.5.zip -DestinationPath .\cmx-deployment-agent-1.1.5
+Set-Location .\cmx-deployment-agent-1.1.5
 .\Install-CmxDeploymentAgent.ps1 -DeploymentPrincipal 'STATION\cmx-deployer'
 ```
 
